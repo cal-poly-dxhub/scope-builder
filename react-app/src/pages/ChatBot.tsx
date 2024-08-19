@@ -70,7 +70,12 @@ const ChatBot: React.FC = () => {
               }
             }}
           />
-          <button onClick={() => handleSubmit(message)}>
+          <button onClick={() => {
+            setMessages([...messages, { text: message, sender: "user" }])
+            handleSubmit(message)
+            setMessage("");
+            }
+          }>
             <i className="fa fa-paper-plane"></i>
           </button>
         </div>
