@@ -63,21 +63,30 @@ const ChatBot: React.FC = () => {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
+              if (e.key === "Enter" && message !== "") {
                 setMessages([...messages, { text: message, sender: "user" }]);
                 handleSubmit(message)
                 setMessage("");
               }
             }}
           />
-          <button onClick={() => {
-            setMessages([...messages, { text: message, sender: "user" }])
-            handleSubmit(message)
-            setMessage("");
-            }
-          }>
+          <button
+            onClick={() => {
+              if (message !== "") {
+                setMessages([...messages, { text: message, sender: "user" }]);
+                handleSubmit(message);
+                setMessage("");
+              }
+            }}
+            style={{
+              backgroundColor: message !== "" ? "blue" : "gray",
+              cursor: message !== "" ? "pointer" : "not-allowed",
+              color: message !== "" ? "white" : "lightgray",
+            }}
+            disabled={message === ""}
+          >
             <i className="fa fa-paper-plane"></i>
-          </button>
+        </button>
         </div>
       </div>
     </div>
