@@ -52,9 +52,9 @@ const useBedrockWebSocket = () => {
   useEffect(() => {
     //unsubscribe as soon as I recieve a message
     if (lastJsonMessage?.Payload?.body) {
-      setConnect(false);
+      setConnect(false); //unsubscribe
       setConnectionID(null);
-      setConnect(true);
+      setConnect(true); //be ready to resubscribe
     }
   }, [lastJsonMessage]);
 
