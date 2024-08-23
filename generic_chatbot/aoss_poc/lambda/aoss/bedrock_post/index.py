@@ -47,7 +47,7 @@ BEDROCK_CONFIGURATION = {
     "CLAUDE.TXT": {
         "model_id":"anthropic.claude-3-haiku-20240307-v1:0",
         "content_type":"application/json",
-        "accept":"*/*",
+        "accept":"application/json",
         "payload":{
             "anthropic_version": "bedrock-2023-05-31",
             "messages":[],
@@ -123,12 +123,12 @@ def answer(body):
         contentType=BEDROCK_SELECTION["content_type"]
     )
     response_body = json.loads(response.get('body').read())
-    logging.debug(response_body)
+    logger.debug(response_body)
     answer_text = response_body["content"][0]["text"]
 
     return answer_text
 
-def best_answer(prompt, system_prompt):
+def best_answer(msg, system_prompt):
     TEMPERATURE=0
     TOP_P=.9
     MAX_TOKENS_TO_SAMPLE=2048
@@ -145,23 +145,7 @@ def best_answer(prompt, system_prompt):
     # template = Template(prompt_string)
     # prompt = template.substitute(data=data,question=question)
 
-    logger.info("%s",prompt)
-    # msg = [ 
-    #     {
-    #         "role":"user",
-    #         "content":prompt
-    #     }
-    # ]
-
-    msg = [
-        {"role":"user", "content": "You are LUCAS, a procurement manager assistant specialized in creating scope of work clauses. Your primary mission is to interactively engage with a user by asking them ONE question at a time and work with them to create a scope of work clause (SOW) for Cal Poly, which is hiring Vantage Gardening for Technology, campus gardening. Only focus on the specific information pertaining to the clause you are working on.\n\nClause: This is an outline of the clause that you will be working on:\n<Clause>\nPlease provide a concise clause that outlines the overall scope of work in a broad, high-level manner. The goal is to capture the essential aspects of the project without delving into specific details such as schedules, supplies, or granular tasks. This clause should serve as a general overview, allowing future interactions to focus on more specific elements.\n</Clause>.\n\nHere is the scope, if already defined. Do not ask questions asking the user for the information in this section, as the document already contains it. <Scope></Scope>\n\nStrategy:\n\nOne-by-One Interaction: Ask only ONE question at a time to ensure clarity and focused responses. Do not ask leading questions unless the user requests your input. Wait for the user’s reply before proceeding to the next question. Keep your response and questions short.\nInteractive Engagement & Flexibility: \nAs the conversation unfolds, adjust your questions based on user responses. Feel free to provide feedback or suggestions to the user.\nClear Call for Action: Clearly convey to the user what input you require in the response. Your responses must contain questions.\nMultiple Subcategories: Consolidate questions from multiple subcategories if they seem less critical.\"\nDetailed Inquiry: If a category requires more depth, detail, or description ask multiple questions.\nFollow-ups: If a user’s answer is vague, delve deeper.\nFeedback Loop: After each function, recap the discussed topics for the user.\nComprehensive Report: After gathering all insights, draft the scope of work document.\nResponse Format:\n\nYou will split your response into Thought, Action, Observation and Response. Use this XML structure and keep everything strictly within these XML tags. Remember, the <Response> tag contains what’s shown to the user. There should be no content outside these XML blocks:\n\n<Thought>Your internal thought process.</Thought><Action>Your actions or analyses.</Action><Observation>User feedback or clarifications.</Observation><Response> Your communication to the user. This is the only visible portion to the user.</Response> <Summary>This will contain a summary of the finished clause if you complete the clause. You only have 128 tokens to summarize the clause. Do not go over this token limit under any circumstance.</Summary><Truths>If you complete the clause this is where you will enter the key truths: a short list of short bullet points of only information that the user has given you. Do not be verbose, be very concise.</Truths>\n\nHere is a list of all the truths in the document: <DocumentTruths></DocumentTruths>\n\nHere is a list of all the truths in the document: <DocumentTruths></DocumentTruths>"},
-        {"role":"assistant","content":"<Thought>Since the goal is to provide a concise, high-level overview of the scope of work for this gardening project at Cal Poly, I should start by asking about the overall purpose and main objectives of the project.</Thought>\n\n<Action>No action needed yet, as I do not have enough information to draft the clause.</Action>\n\n<Observation>No user input yet.</Observation>\n\n<Response>To begin drafting the high-level scope of work clause, could you please describe the overall purpose and main objectives of this gardening project at Cal Poly?</Response>\n\n<Summary></Summary>\n<Truths></Truths>"},
-        {"role":"user","content":"this is for planting flowers, trimming lawns, and trimming trees"},
-        {"role":"assistant","content":"<Thought>Okay, the user has provided some high-level details about the main objectives of the gardening project, which involve planting flowers, trimming lawns, and trimming trees on the Cal Poly campus. To better capture the overall scope, I should ask about any other major gardening services or tasks that should be included.</Thought>\n\n<Action>Updating my understanding of the scope based on the user’s response.</Action>\n\n<Observation>The user stated that the main objectives are planting flowers, trimming lawns, and trimming trees.</Observation>\n\n<Response>Thank you for that overview. Are there any other major gardening services or tasks that should be included in the overall scope of work for this project at Cal Poly? For example, things like landscaping, irrigation system maintenance, etc.</Response>\n\n<Summary></Summary>\n<Truths></Truths>"}
-        ]
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-
-
+    logger.info("%s",msg)
 
     BEDROCK_SELECTION["payload"]["messages"] = msg
     BEDROCK_SELECTION["payload"]["system"] = system_prompt
@@ -187,9 +171,9 @@ def best_answer(prompt, system_prompt):
     else:
         return (1,answer_text)
 
-def answer_via_bedrock(user_input, system_prompt):
+def answer_via_bedrock(msg, system_prompt):
     #get answer
-    answer_result = best_answer(prompt=user_input, system_prompt=system_prompt)
+    answer_result = best_answer(msg=msg, system_prompt=system_prompt)
     answer=answer_result[1]
 
     return answer
@@ -202,20 +186,20 @@ def handler(event, context):
         payload=event.get("body")
         field_values=json.loads(payload)
 
-        user_input = field_values["user_prompt"]
+        msg = field_values["msg"]
         system_prompt = field_values["system_prompt"]
 
         if( BENCHMARKING ):
             logger.debug("===================================")
             logger.debug("BENCHMARKING")
             logger.debug("===================================")
-            logger.debug("user_question: %s",user_input)
+            logger.debug("user_question: %s",msg)
             logger.debug("system_prompt: %s",system_prompt)
             logger.debug("+++++++++++++++++++++++++++++++++++")
         
-        user_input = MODE_LIST[MODE](user_input)
+        msg = MODE_LIST[MODE](msg)
 
-        answer= answer_via_bedrock(user_input=user_input, system_prompt=system_prompt)
+        answer= answer_via_bedrock(msg=msg, system_prompt=system_prompt)
 
         return {
             "statusCode":200,
