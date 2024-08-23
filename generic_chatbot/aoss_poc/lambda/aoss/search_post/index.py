@@ -198,8 +198,11 @@ def generate_embedding(text):
 @timing_decorator
 def strip_knn_vector(data,strip_field='content-vector'):
     try:
+        logger.debug("Strip_knn_vector")
         rebuild = []
+        logger.debug("DATA: %s", data)
         for entry in data['hits']['hits']:
+            
             entry["_source"][strip_field]=[-1]
             rebuild.append(entry)
         data['hits']['hits'] = rebuild
@@ -225,6 +228,8 @@ def execute_article_knn(embeddings,search_size):
         body = query,
         index = AOSS_INDEX
     )
+    logger.debug("AOSS RESPONSE")
+    logger.debug("response: %s", response)
     return(response)
 
 @timing_decorator
@@ -366,6 +371,7 @@ def zscore_reduction(search_results):
     cosine_scores=[]
     for hit in search_results['hits']['hits']:
         cosine_scores.append(hit['_score'])
+        logger.debug("LEN COSINE SCORES: %s", len(cosine_scores))
 
     z_scores = calculate_zscores(cosine_scores)
 
@@ -450,11 +456,12 @@ def stream_answer(body,connect_id):
         contentType=BEDROCK_SELECTION["content_type"]
     )
 
-    
     event_stream = response.get('body', {})
     answer_chunks=""
     for event in event_stream:
         chunk = event.get('chunk')
+        logger.debug("~~~CHUNK~~~~")
+        logger.debug("Chunk: %s", chunk)
         if chunk:
             message = json.loads(chunk.get("bytes").decode())
             if message['type'] == "content_block_delta":
@@ -825,6 +832,7 @@ def handler(event,context):
 
         SIMILARITY_THRESHOLD=.85 #threshold to consider a query as something that was asked before
         if( nearest_query_result["hits"] == 0 or nearest_query_result["max_score"] < SIMILARITY_THRESHOLD):
+            logger.debug("checking through bedrock")
             search_results,answer=answer_via_bedrock( embedding=embedding, search_size=search_size, execution_arn=execution_arn, bedrock_mode=bedrock_mode, connect_id=connect_id, user_input=user_input )
         else: #hit on similar query; will always be a result of one (top) if we hit threshold
             search_results,answer=answer_via_bypass_logic(nearest_query_result=nearest_query_result,user_input=user_input)

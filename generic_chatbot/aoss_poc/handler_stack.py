@@ -102,6 +102,17 @@ class HandlerStack(Stack):
                 allow_origins=[LOCALHOST_ORIGIN if ALLOW_LOCALHOST_ORIGIN else ""])
         )
 
+        #api gateway for simple bedrock call
+        simple_api = apigateway.RestApi(
+            self,"simple-api",
+            endpoint_configuration=apigateway.EndpointConfiguration(
+                types=[apigateway.EndpointType.REGIONAL]
+            ),
+            default_cors_preflight_options=apigateway.CorsOptions(
+                allow_methods=['GET', 'OPTIONS','PUT','PATCH','POST'],
+                allow_origins=[LOCALHOST_ORIGIN if ALLOW_LOCALHOST_ORIGIN else ""])
+        )
+
         #################################################################################
         # DynamoDB To Prevent Event Dupes of AOSS
         #################################################################################   
@@ -226,6 +237,23 @@ class HandlerStack(Stack):
                 "LOCALHOST_ORIGIN":LOCALHOST_ORIGIN if ALLOW_LOCALHOST_ORIGIN else "",
                 "TABLE_NAME": dynamo_connections.table_name,
                 "ENDPOINT_URL": websocket_api.api_endpoint
+            },
+            timeout=Duration.minutes(5),
+            layers=[ LAMBDA_CUSTOM_LAYER ]
+        )
+
+        #################################################################################
+        # Simple Bedrock Functionality
+        #################################################################################
+        fn_simple_bedrock_call = lambda_.Function(
+            self,"fn-simple-bedrock-call",
+            description="simple-bedrock-call", #microservice tag
+            runtime=lambda_.Runtime.PYTHON_3_11,
+            handler="index.handler",
+            role=AOSS_ROLE,
+            code=lambda_.Code.from_asset(os.path.join("aoss_poc/lambda/aoss","bedrock_post")),
+            environment={
+                "LOCALHOST_ORIGIN":LOCALHOST_ORIGIN if ALLOW_LOCALHOST_ORIGIN else "",
             },
             timeout=Duration.minutes(5),
             layers=[ LAMBDA_CUSTOM_LAYER ]
@@ -389,6 +417,14 @@ class HandlerStack(Stack):
             api_key_required=True
         )
 
+        ###### Route Base = /simple
+        pr_simple= simple_api.root.add_resource("simple")
+        intg_simple_bedrock_call=apigateway.LambdaIntegration(fn_simple_bedrock_call)
+        method_simple_call=pr_simple.add_method(
+            "POST",intg_simple_bedrock_call,
+            api_key_required=False
+        )
+
         ###### Route Base = /api/async
         pr_async=api_route.add_resource("async")
         ###### Route Base = /api/aysnc/search
@@ -418,6 +454,18 @@ class HandlerStack(Stack):
         
         plan.add_api_key(core_key)
         plan.add_api_stage(api=core_api,stage=core_api.deployment_stage)
+
+        #plan for simple api
+        plan_simple = simple_api.add_usage_plan(
+            "SimpleUsagePlan",name="public simple plan",
+            throttle=apigateway.ThrottleSettings(
+                rate_limit=10,
+                burst_limit=2
+            )
+        )
+        plan_simple.add_api_stage(api=simple_api,stage=simple_api.deployment_stage)
+
+
 
 
         #################################################################################
@@ -473,4 +521,5 @@ class HandlerStack(Stack):
             usage_plan_id=cfn_usage_plan.attr_id
         )
     
-        self.core_api = core_api        
+        self.core_api = core_api     
+        self.simple_api = simple_api   

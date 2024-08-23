@@ -18,9 +18,9 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-REST_X_API_KEY = os.environ.get("REST_X_API_KEY")
-REST_API_ENDPOINT = os.environ.get("REST_API_ENDPOINT")
-WEBSOCKET_X_API_KEY = os.environ.get("WEBSOCKET_X_API_KEY")
+REST_X_API_KEY = "Wwbp$Lqg90_?U<#CFpjU[3]CO{A;gv~$"
+REST_API_ENDPOINT = "https://9y8bvjsr2j.execute-api.us-west-2.amazonaws.com/prod/"
+WEBSOCKET_X_API_KEY = "r><7Xpqx(!#$=wB6{KH?n;nN7BBk]%6A"
 WEBSOCKET_API_NAME = "core-websocket-api"
 
 
