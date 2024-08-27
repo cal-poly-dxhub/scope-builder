@@ -1,51 +1,111 @@
-/* index.css */
-
-/* Reset some default styles */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+:root {
+  --primary-color: #2c762c;
+  --secondary-color: #394839;
+  --alternate-color: #85aa85;
+  --background-color: #efefef;
+  --text-color: #212529;
+  --hover-color: #133827;
+  --border-color: #d3d1d1;
 }
 
 body {
-  font-family: Arial, sans-serif;
-  line-height: 1.6;
-  background-color: #f5f5f5;
-  color: #333;
-}
-
-/* Remove default styles for common elements */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
   margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--background-color);
+  color: var(--text-color);
 }
 
-ul,
-ol {
-  list-style: none;
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
 }
 
 a {
-  text-decoration: none;
-  color: inherit;
+  color: var(--text-color);
 }
 
-/* Global styles for better accessibility */
+select {
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--input-background-color);
+  color: var(--text-color);
+}
+
 button {
+  border: none;
   cursor: pointer;
 }
 
-input,
-button,
-textarea {
-  font-family: inherit;
+input {
+  border: none;
+  border-radius: 4px;
+  background-color: var(--input-background-color);
+  color: var(--text-color);
 }
 
-/* Optional styles for a smooth scrolling experience */
-html {
-  scroll-behavior: smooth;
+.auth {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+}
+
+.scrollY {
+  overflow-y: auto;
+}
+
+.scrollX {
+  overflow-x: auto;
+}
+
+.no-dec {
+  text-decoration: none;
+}
+
+.flex-grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+/* --------------------------------------------------- */
+
+.button {
+  padding: 0.5rem 1rem;
+  margin: 0 0.5rem;
+  font-size: 1rem;
+  background-color: var(--primary-color);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.button:hover {
+  background-color: var(--hover-color);
+}
+
+.input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  outline: none;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+  font-family: inherit;
 }

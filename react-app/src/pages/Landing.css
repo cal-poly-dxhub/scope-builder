@@ -1,0 +1,45 @@
+.landing-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.centered-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+}
+
+.centered-text h1 {
+  font-size: 3rem;
+  text-align: center;
+}
+
+.button-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.selected {
+  background-color: #0056b3;
+}
+
+.submit-button {
+  margin-top: 1rem;
+}
+
+.ul-row {
+  display: flex;
+  justify-content: center;
+  list-style-type: none;
+  padding: 0;
+}
+
+a {
+  text-decoration: none;
+}
