@@ -114,8 +114,7 @@ const getBedrockResponse = async (
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        // "x-auth-token": token,
-        Authorization: `Bearer ${token}`,
+        id_token: token,
       },
       body,
     };

@@ -55,7 +55,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     cognitoUser.authenticateUser(authDetails, {
       onSuccess: (result) => {
-        setToken(result.getAccessToken().getJwtToken());
+        setToken(result.getIdToken().getJwtToken());
         setEmail(em);
         onSuccess(result);
       },
