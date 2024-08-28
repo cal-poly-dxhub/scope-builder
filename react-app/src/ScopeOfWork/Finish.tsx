@@ -12,8 +12,8 @@ const sow_finalize = prompts["sow_finalize"];
 const Finish = () => {
   const { token } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
   const documentTitle = location.state?.documentTitle || null;
+  const navigate = useNavigate();
   const sowgenContext: {
     contexts: {
       title: string;
@@ -24,6 +24,12 @@ const Finish = () => {
     supplier: string;
     documentPurpose: string;
     document: { title: string; content: string; summary: string }[];
+    clauses: {
+      title: string;
+      content: string;
+      summary: string;
+      truths: string;
+    }[];
     currentClause: { title: string; clause: string; summary: string };
   } = location.state;
 
@@ -37,9 +43,6 @@ const Finish = () => {
   >([]);
   const [selectedText, setSelectedText] = useState<string>("");
   const [inputText, setInputText] = useState<string>("");
-
-  console.log("document");
-  console.log(JSON.stringify(document, null, 2));
 
   const makeDocumentLLMReady = (document: _document) => {
     let newDoc: string = "";
@@ -91,6 +94,22 @@ const Finish = () => {
       title: "Engagement of Contractor",
       content: clauseContent,
     } as _clause;
+  };
+
+  const changeClauseWording = async (clause: _clause, definitions: _clause) => {
+    const llmClause = `<${clause.title}>${clause.content}</${clause.title}>`;
+    const llmDefinitions = `<${definitions.title}>${definitions.content}</${definitions.title}>`;
+    const prompt = `You are LUCAS, a specialist in generating scope of work documents. You are tasked with modifying the following clause and definitions clause:\n${llmClause}\n${llmDefinitions}\nYour task is to exchange the wording in the ${clause.title} clause and replace any instances of a word or phrase that is defined in the definitions clause with the word or phrase that defines that definition.\nRespond in the following XML structure. All text outside of these blocks will be ignored:\n<Thought>Your internal thought process</Thought><Clause>The modified clause</Clause>`;
+    const message = [
+      {
+        role: "user",
+        content: [{ type: "text", text: prompt }],
+      },
+    ];
+
+    const res = await getBedrockResponse(message, token);
+    const clauseContent = getCaluseTags(res);
+    return { title: clause.title, content: clauseContent } as _clause;
   };
 
   const handleTextSelect = () => {
@@ -151,6 +170,7 @@ const Finish = () => {
 
   useEffect(() => {
     const handleGenerateClause = async () => {
+      const newClauses: _clause[] = [];
       const engagementClause = await generateEngagementClause();
       const definitionsClause = await generateDefinitionsClause();
 
@@ -160,9 +180,18 @@ const Finish = () => {
         return;
       }
 
+      newClauses.push(definitionsClause);
+      newClauses.push(engagementClause);
+
+      // now exchangewording
+      for (const c of document.clauses) {
+        const newClause = await changeClauseWording(c, definitionsClause);
+        newClauses.push(newClause);
+      }
+
       setDocument({
         ...document,
-        clauses: [engagementClause, definitionsClause, ...document.clauses],
+        clauses: newClauses,
       });
     };
 

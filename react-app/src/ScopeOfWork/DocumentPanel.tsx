@@ -50,6 +50,12 @@ const DocumentPanel = ({
     supplier: string | null;
     documentPurpose: string | null;
     document: _document;
+    clauses: {
+      title: string;
+      content: string;
+      summary: string;
+      truths: string;
+    }[];
     currentClause: {
       title: string;
       clause: string;

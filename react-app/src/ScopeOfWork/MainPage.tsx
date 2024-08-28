@@ -9,11 +9,11 @@ import {
 
 import prompts from "../assets/prompt.json";
 import templates from "../assets/SOWCategories.json";
+import { _document } from "../assets/types";
 import { useAuth } from "../Auth/AuthContext";
 import Chat from "./Chat";
 import ClauseSelector from "./ClauseSelector";
 import DocumentPanel from "./DocumentPanel";
-import { _document } from "../assets/types";
 const sow_prompt = prompts["sow_prompt"];
 const ScopeOfWork = templates.Clauses.find(
   (clause) => clause.category === "All"
@@ -35,7 +35,8 @@ const MainPage = () => {
     userInstitution: string;
     supplier: string;
     documentPurpose: string;
-    document: {
+    document: _document;
+    clauses: {
       title: string;
       content: string;
       summary: string;
@@ -93,7 +94,7 @@ const MainPage = () => {
       summary: string;
       truths: string;
     }[]
-  >(sowgenContext?.document ?? []);
+  >(sowgenContext?.clauses ?? []);
 
   const handleAddClause = async (clause: {
     title: string;
@@ -254,6 +255,7 @@ const MainPage = () => {
               supplier,
               clauses,
             } as _document,
+            clauses,
             currentClause,
             documentTitle: category + " Scope of Work",
           }}
