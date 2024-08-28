@@ -1,6 +1,7 @@
 import { Box, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import j from "../assets/prompt.json";
+import { _document } from "../assets/types";
 import { useAuth } from "../Auth/AuthContext";
 import { downloadDocument } from "../scripts/Docx";
 import {
@@ -104,7 +105,10 @@ const AmendClause = () => {
       console.log("clauses:", JSON.stringify(clauses, null, 2));
 
       const title = `Scope of Work Amendment - ${new Date().toDateString()}`;
-      downloadDocument(title, clauses);
+      downloadDocument({
+        title,
+        clauses,
+      } as _document);
     };
 
     if (accepted) {

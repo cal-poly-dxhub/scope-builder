@@ -1,5 +1,5 @@
 import { AlignmentType, Document, Packer, Paragraph, TextRun } from "docx";
-import { _clause } from "../assets/types";
+import { _clause, _document } from "../assets/types";
 
 const createDocument = (title: string, clauses: _clause[]) => {
   const doc = new Document({
@@ -94,14 +94,14 @@ const createAmendment = (
   return doc;
 };
 
-const downloadDocument = (title: string, clauses: _clause[]) => {
-  const doc = createDocument(title, clauses);
+const downloadDocument = (d: _document) => {
+  const doc = createDocument(d.title, d.clauses);
 
   Packer.toBlob(doc).then((blob) => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = title + ".docx";
+    a.download = d.title + ".docx";
     a.click();
     window.URL.revokeObjectURL(url);
   });

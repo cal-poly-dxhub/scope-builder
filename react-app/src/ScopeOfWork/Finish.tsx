@@ -1,13 +1,10 @@
 import { Box, Button, TextField, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import prompts from "../assets/prompt.json";
 import { _clause, _document } from "../assets/types";
 import { useAuth } from "../Auth/AuthContext";
 import { downloadDocument } from "../scripts/Docx";
 import { getBedrockResponse, getCaluseTags } from "../scripts/LLMGeneral";
-
-const sow_finalize = prompts["sow_finalize"];
 
 const Finish = () => {
   const { token } = useAuth();
@@ -35,12 +32,9 @@ const Finish = () => {
 
   const generated = useRef(false);
   const [document, setDocument] = useState<_document>(location.state?.document);
-  const [formattedDocument, setFormattedDocument] = useState<
-    { title: string; content: string }[]
-  >([]);
-  const [previousDocument, setPreviousDocument] = useState<
-    { title: string; content: string }[]
-  >([]);
+  const [previousDocument, setPreviousDocument] = useState<_document>(
+    location.state?.document
+  );
   const [selectedText, setSelectedText] = useState<string>("");
   const [inputText, setInputText] = useState<string>("");
 
@@ -158,14 +152,17 @@ const Finish = () => {
       }
     }
 
-    setPreviousDocument(formattedDocument);
-    setFormattedDocument(newClauses);
+    setPreviousDocument(document);
+    setDocument({
+      ...document,
+      clauses: newClauses,
+    });
     setSelectedText("");
     setInputText("");
   };
 
   const handleUndo = () => {
-    setFormattedDocument(previousDocument);
+    setDocument(previousDocument);
   };
 
   useEffect(() => {
@@ -183,7 +180,6 @@ const Finish = () => {
       newClauses.push(definitionsClause);
       newClauses.push(engagementClause);
 
-      // now exchangewording
       for (const c of document.clauses) {
         const newClause = await changeClauseWording(c, definitionsClause);
         newClauses.push(newClause);
@@ -193,44 +189,13 @@ const Finish = () => {
         ...document,
         clauses: newClauses,
       });
+
+      generated.current = true;
     };
 
     handleGenerateClause();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // generate clauses on start
-
-  // useEffect(() => {
-  //   const handleExport = async () => {
-  //     const message =
-  //       sow_finalize + document.clauses.map((c) => c.content).join(" ");
-  //     const context = {
-  //       role: "user",
-  //       content: [{ type: "text", text: message }],
-  //     };
-
-  //     const response = await getBedrockResponse([context], token);
-
-  //     const clauses = [];
-  //     while (true) {
-  //       const currentClause = getNumberTags(clauses.length + 1, response);
-  //       if (currentClause === "") {
-  //         break;
-  //       }
-
-  //       const title = getTitleTags([{ type: "text", text: currentClause }]);
-  //       const clause = getCaluseTags([{ type: "text", text: currentClause }]);
-  //       clauses.push({ title, content: clause });
-  //     }
-
-  //     setFormattedDocument(clauses);
-  //     setPreviousDocument(clauses);
-  //   };
-  //   if (!generated.current) {
-  //     generated.current = true;
-  //     handleExport();
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [generated.current]); // generate document on start
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
@@ -260,28 +225,7 @@ const Finish = () => {
           <Typography variant="h5" gutterBottom>
             {documentTitle}
           </Typography>
-          {/* {formattedDocument &&
-            formattedDocument.map((doc, index) => (
-              <Box
-                key={index}
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  marginBottom: 2,
-                }}
-              >
-                <Typography variant="h6" gutterBottom>
-                  {doc.title}
-                </Typography>
-                <Typography variant="body1">{doc.content}</Typography>
-              </Box>
-            ))}
-          {formattedDocument.length === 0 && (
-            <Typography variant="body1">Generating Document...</Typography>
-          )} */}
-          {/* {document.clauses.find(
-            (doc) => doc.title === "Definitions and Terms" */}
-          {true ? (
+          {generated ? (
             document.clauses.map((doc, index) => (
               <Box
                 key={index}
@@ -354,12 +298,12 @@ const Finish = () => {
                 return;
               }
 
-              downloadDocument(documentTitle, formattedDocument);
+              downloadDocument(document);
             }}
           >
             Download Document
           </Button>
-          {previousDocument.length > 0 && (
+          {previousDocument.clauses.length > 0 && (
             <Button variant="contained" onClick={handleUndo}>
               Undo
             </Button>
