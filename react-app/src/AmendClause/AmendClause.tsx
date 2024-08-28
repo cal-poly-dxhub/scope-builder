@@ -1,23 +1,23 @@
+import { Box, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import Navbar from "../../Components/Navbar";
-import "./AmendClause.css";
-import AmendInput from "./AmendInput";
-
-import j from "../../assets/prompt.json";
-import { downloadDocument } from "../../scripts/Docx";
+import j from "../assets/prompt.json";
+import { useAuth } from "../Auth/AuthContext";
+import { downloadDocument } from "../scripts/Docx";
 import {
   getBedrockResponse,
   getCaluseTags,
   getNumberTags,
   getTitleTags,
-} from "../../scripts/LLMGeneral";
+} from "../scripts/LLMGeneral";
 import AmendChat from "./AmendChat";
+import AmendInput from "./AmendInput";
+
 const initial_prompt = j["amend_clause"];
 const finalize_prompt = j["amend_finalize"];
-
 const DEBUG = false;
 
 const AmendClause = () => {
+  const { token } = useAuth();
   const [loading, setLoading] = useState<boolean>(false);
   const [accepted, setAccepted] = useState<boolean>(false);
   const [context, setContext] = useState<{
@@ -33,18 +33,19 @@ const AmendClause = () => {
   const [currentClause, setCurrentClause] = useState<{
     title: string;
     clause: string;
+    summary: string;
   }>({
     title: "",
     clause: "",
+    summary: "",
   });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [document, setDocument] = useState<
-    | {
-        title: string;
-        content: string;
-        summary: string;
-        truths: string;
-      }[]
+    {
+      title: string;
+      content: string;
+      summary: string;
+      truths: string;
+    }[]
   >([]);
 
   useEffect(() => {
@@ -64,7 +65,7 @@ const AmendClause = () => {
       setContext(newContext);
 
       setLoading(true);
-      const r = await getBedrockResponse(newContext.context ?? []);
+      const r = await getBedrockResponse(newContext.context ?? [], token);
 
       newContext.context.push({ role: "assistant", content: r });
       setContext(newContext);
@@ -74,8 +75,7 @@ const AmendClause = () => {
     if (currentClause.title !== "" && currentClause.clause !== "") {
       handleAddClause();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentClause]); // handle loading
+  }, [currentClause, token]);
 
   useEffect(() => {
     const handleExport = async (docu: { title: string; content: string }[]) => {
@@ -86,7 +86,7 @@ const AmendClause = () => {
         content: [{ type: "text", text: message }],
       };
 
-      const response = await getBedrockResponse([context]);
+      const response = await getBedrockResponse([context], token);
       console.log("response:", JSON.stringify(response, null, 2));
 
       const clauses = [];
@@ -104,7 +104,6 @@ const AmendClause = () => {
       console.log("clauses:", JSON.stringify(clauses, null, 2));
 
       const title = `Scope of Work Amendment - ${new Date().toDateString()}`;
-      // createDocument(title, clauses);
       downloadDocument(title, clauses);
     };
 
@@ -114,7 +113,7 @@ const AmendClause = () => {
         const response =
           context?.context[context.context.length - 2]?.content ??
           context?.context[context.context.length - 1]?.content ??
-          "no clause found"; // -2 and -1?
+          "no clause found";
         const clause = getCaluseTags(response);
         const doc = [
           {
@@ -130,27 +129,33 @@ const AmendClause = () => {
 
       setAccepted(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accepted]); // handle accepted clause
+  }, [accepted, context, currentClause.title, token]);
 
   return (
-    <div>
-      <Navbar />
-      <div className="horizontal">
-        <AmendInput setClause={setCurrentClause} />
-        <AmendChat
-          loading={loading}
-          setLoading={setLoading}
-          context={context}
-          setContext={setContext}
-          setAccepted={setAccepted}
-          currentClause={{ ...currentClause, summary: "" }}
-          setCurrentClause={setCurrentClause}
-          document={document}
-          debug={DEBUG}
-        />
-      </div>
-    </div>
+    <Box
+      sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+    >
+      <Typography variant="h4" gutterBottom marginBottom={3} marginTop={2}>
+        Amend Clause
+      </Typography>
+      <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
+        <Box sx={{ display: "flex", gap: 4 }}>
+          <AmendInput setClause={setCurrentClause} style={{ width: "50vw" }} />
+          <AmendChat
+            loading={loading}
+            setLoading={setLoading}
+            context={context}
+            setContext={setContext}
+            setAccepted={setAccepted}
+            currentClause={{ ...currentClause, summary: "" }}
+            setCurrentClause={setCurrentClause}
+            document={document}
+            debug={DEBUG}
+            style={{ width: "50vw" }}
+          />
+        </Box>
+      </Box>
+    </Box>
   );
 };
 

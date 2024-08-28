@@ -3,7 +3,11 @@ import p from "../assets/prompt.json";
 const gen_prompt = p["gen_prompt"];
 const read_prompt = p["read_prompt"];
 
-const generateContract = async (context: any[], userInput: string) => {
+const generateContract = async (
+  context: any[],
+  userInput: string,
+  token: string
+) => {
   const ctx = context;
   if (userInput.length < 4 && !isNaN(parseInt(userInput, 10))) {
     const clauses = "TFGCFTJGCNHVGKFJTDGNCVHGJ".split("\n\n");
@@ -30,7 +34,7 @@ const generateContract = async (context: any[], userInput: string) => {
   }
 
   try {
-    const responses = await getBedrockResponse(ctx);
+    const responses = await getBedrockResponse(ctx, token);
     const response = {
       role: "assistant",
       content: responses,
@@ -48,7 +52,11 @@ const generateContract = async (context: any[], userInput: string) => {
   }
 };
 
-const readContract = async (context: any[], userInput: string) => {
+const readContract = async (
+  context: any[],
+  userInput: string,
+  token: string
+) => {
   const ctx = context;
   if (ctx.length === 0) {
     const propmt = read_prompt.replace("--CONTRACT--", userInput);
@@ -74,7 +82,7 @@ const readContract = async (context: any[], userInput: string) => {
   }
 
   try {
-    const responses = await getBedrockResponse(ctx);
+    const responses = await getBedrockResponse(ctx, token);
 
     const response = {
       role: "assistant",
@@ -93,7 +101,8 @@ const readContract = async (context: any[], userInput: string) => {
 };
 
 const getBedrockResponse = async (
-  messages: { role: string; content: { type: string; text: string }[] }[]
+  messages: { role: string; content: { type: string; text: string }[] }[],
+  token: string
 ) => {
   try {
     const body = JSON.stringify({
@@ -105,6 +114,8 @@ const getBedrockResponse = async (
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        // "x-auth-token": token,
+        Authorization: `Bearer ${token}`,
       },
       body,
     };

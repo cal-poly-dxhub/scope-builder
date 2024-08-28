@@ -115,9 +115,11 @@ const DocumentPanel = ({
         ))}
       </Box>
       <Box sx={{ mt: 2 }}>
-        <Button variant="contained" onClick={handleExport}>
-          Export Document
-        </Button>
+        {document.length > 0 && (
+          <Button variant="contained" onClick={handleExport}>
+            Export Document
+          </Button>
+        )}
         {debug && (
           <Button
             variant="contained"

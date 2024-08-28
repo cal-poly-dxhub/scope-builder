@@ -5,57 +5,58 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Input,
+  TextField,
   Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
-import { _style } from "../assets/types";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../Auth/AuthContext";
 import Message from "../Components/Message";
 import {
   getBedrockResponse,
   getCaluseTags,
-  getIncrementalTruths,
+  getIncrementalContext,
+  getResponseTags,
   getSummaryTags,
-  getTruthsTags,
 } from "../scripts/LLMGeneral";
 
-const Chat = ({
+const AmendChat = ({
   loading,
   setLoading,
-  contexts,
-  setContexts,
+  context,
+  setContext,
   setAccepted,
   currentClause,
   setCurrentClause,
   document,
-  debug = false,
+  debug,
   style,
 }: {
   loading: boolean;
   setLoading: (loading: boolean) => void;
-  contexts: {
+  context: {
     title: string;
-    context: { role: string; content: { type: string; text: string }[] }[];
-  }[];
-  setContexts: (
-    contexts: {
-      title: string;
-      context: { role: string; content: { type: string; text: string }[] }[];
-    }[]
-  ) => void;
+    context: {
+      role: string;
+      content: { type: string; text: string }[];
+    }[];
+  };
+  setContext: (context: {
+    title: string;
+    context: {
+      role: string;
+      content: { type: string; text: string }[];
+    }[];
+  }) => void;
   setAccepted: (accepted: boolean) => void;
   currentClause: {
     title: string;
     clause: string;
     summary: string;
-    truths: string;
   };
   setCurrentClause: (currentClause: {
     title: string;
     clause: string;
     summary: string;
-    truths: string;
   }) => void;
   document: {
     title: string;
@@ -63,12 +64,13 @@ const Chat = ({
     summary: string;
     truths: string;
   }[];
-  debug?: boolean;
-  style?: _style;
+  debug: boolean;
+  style?: React.CSSProperties;
 }) => {
   const { token } = useAuth();
   const [inputValue, setInputValue] = useState<string>("");
   const [clausePopup, setClausePopup] = useState<boolean>(false);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -79,68 +81,68 @@ const Chat = ({
       return;
     }
 
-    if (loading) {
-      return;
-    }
-
     const ui = inputValue;
     setInputValue("");
 
-    const oldContext = contexts.find(
-      (c) => c.title === currentClause.title
-    ) ?? {
-      title: currentClause.title,
-      context: [],
-    };
+    const oldContext = context;
 
-    const incrementalTruths = getIncrementalTruths(document);
+    const incrementalContext = getIncrementalContext(document);
     if (oldContext.context.length > 0) {
-      oldContext.context[0].content[0].text += incrementalTruths;
+      oldContext.context[0].content[0].text += incrementalContext;
     }
 
     const newContext = [
       ...oldContext.context,
       { role: "user", content: [{ type: "text", text: ui }] },
     ];
-    const newContexts = [
-      ...contexts.filter((c) => c.title !== currentClause.title),
-      { title: currentClause.title, context: newContext },
-    ];
-
-    setContexts(newContexts);
+    const newContexts = { title: currentClause.title, context: newContext };
+    setContext(newContexts);
 
     setLoading(true);
     const r = await getBedrockResponse(newContext, token);
     const finishedClause = getCaluseTags(r);
     const summary = getSummaryTags(r);
-    const truths = getTruthsTags(r);
 
     if (finishedClause) {
       setCurrentClause({
         title: currentClause.title,
         clause: finishedClause,
         summary,
-        truths,
       });
       setClausePopup(true);
     }
 
     newContext.push({ role: "assistant", content: r });
-    setContexts(newContexts);
+    const finalContexts = { title: currentClause.title, context: newContext };
+    setContext(finalContexts);
 
     setLoading(false);
   };
 
   const getMessages = () => {
-    const currentContext = contexts.find(
-      (c) => c.title === currentClause.title
-    )?.context;
+    const currentContext = context.context;
 
     if (!currentContext) {
       return [];
     }
 
     return currentContext.map((message, index) => {
+      if (message.role === "assistant") {
+        if (getCaluseTags(message.content) !== "") {
+          return (
+            <Box key={index} sx={{ marginBottom: 2 }}>
+              {getCaluseTags(message.content)}
+            </Box>
+          );
+        }
+
+        return (
+          <Box key={index} sx={{ marginBottom: 2 }}>
+            {getResponseTags(message.content)}
+          </Box>
+        );
+      }
+
       if (
         message.role === "user" &&
         message.content[0].text.includes(
@@ -170,10 +172,10 @@ const Chat = ({
   };
 
   useEffect(() => {
-    const chatBox = window.document.querySelector(".message-container");
-    chatBox?.scrollTo(0, chatBox.scrollHeight);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contexts, loading]); // auto scroll to bottom
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [context, loading]);
 
   return (
     <Box
@@ -181,13 +183,12 @@ const Chat = ({
         display: "flex",
         flexDirection: "column",
         bgcolor: "background.paper",
-        height: "auto",
-        maxHeight: "100%",
+        height: "85vh",
         ...style,
       }}
     >
       <Box sx={{ display: "flex", justifyContent: "center", marginTop: 2 }}>
-        <Typography variant="h4">Scope of Work Generator</Typography>
+        <Typography variant="h4">Clause Amendment Chat</Typography>
       </Box>
       <Box
         sx={{
@@ -206,6 +207,7 @@ const Chat = ({
           }}
         >
           {getMessages()}
+          <div ref={messagesEndRef} />
         </Box>
         {loading && (
           <Box sx={{ marginTop: 2 }}>
@@ -221,7 +223,7 @@ const Chat = ({
           padding: 2,
         }}
       >
-        <Input
+        <TextField
           sx={{ flexGrow: 1, marginRight: 2 }}
           value={inputValue}
           onChange={handleInputChange}
@@ -239,7 +241,7 @@ const Chat = ({
           <Button
             variant="contained"
             onClick={() => {
-              console.log(contexts);
+              console.log(context);
             }}
             sx={{ marginLeft: 2 }}
           >
@@ -270,4 +272,4 @@ const Chat = ({
   );
 };
 
-export default Chat;
+export default AmendChat;

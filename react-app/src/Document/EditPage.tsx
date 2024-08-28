@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { _clause, _document } from "../assets/types";
+import { useAuth } from "../Auth/AuthContext";
 import ChatBox from "../Components/ChatBox";
 import Container from "../Components/Container";
 import Navbar from "../Components/Navbar";
@@ -11,6 +12,8 @@ const EditPage = () => {
   const { document } = useLocation().state;
   const [d, setD] = useState<_document>(document);
   const [selectedText, setSelectedText] = useState<string>("");
+
+  const { token } = useAuth();
 
   const handleSelectedText = (s: string) => {
     setSelectedText(s);
@@ -36,7 +39,7 @@ const EditPage = () => {
         },
       ];
 
-      const response = await getBedrockResponse(messages);
+      const response = await getBedrockResponse(messages, token);
       const modifiedClause = getModifiedClause(response);
 
       if (modifiedClause !== "") {

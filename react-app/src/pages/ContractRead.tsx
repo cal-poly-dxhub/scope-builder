@@ -1,10 +1,12 @@
 import { useState } from "react";
 import "./ContractRead.css";
 
+import { useAuth } from "../Auth/AuthContext";
 import Navbar from "../Components/Navbar";
 import { readContract } from "../scripts/LLMGeneral";
 
 const ContractRead = () => {
+  const { token } = useAuth();
   const firstMessages = [
     {
       role: "assistant",
@@ -70,7 +72,7 @@ const ContractRead = () => {
 
     setLoading(true);
 
-    const response = await readContract(context, userInput);
+    const response = await readContract(context, userInput, token);
     const responseText = response.content[0].text
       .split("<Response>")[1]
       .split("</Response>")[0];

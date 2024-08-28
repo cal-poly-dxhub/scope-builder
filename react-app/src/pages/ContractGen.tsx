@@ -1,10 +1,12 @@
 import { useState } from "react";
 import "./ContractGen.css";
 
+import { useAuth } from "../Auth/AuthContext";
 import Navbar from "../Components/Navbar";
 import { generateContract } from "../scripts/LLMGeneral";
 
 const ContractGen = () => {
+  const { token } = useAuth();
   const firstMessages = [
     {
       role: "assistant",
@@ -76,7 +78,7 @@ const ContractGen = () => {
     setInputValue("");
 
     setLoading(true);
-    const response = await generateContract(context, inputValue);
+    const response = await generateContract(context, inputValue, token);
     if (!response) {
       setLoading(false);
       return;

@@ -9,6 +9,7 @@ import {
 
 import prompts from "../assets/prompt.json";
 import templates from "../assets/SOWCategories.json";
+import { useAuth } from "../Auth/AuthContext";
 import Chat from "./Chat";
 import ClauseSelector from "./ClauseSelector";
 import DocumentPanel from "./DocumentPanel";
@@ -20,6 +21,7 @@ const ScopeOfWork = templates.Clauses.find(
 const DEBUG = false;
 
 const MainPage = () => {
+  const { token } = useAuth();
   const [searchParams] = useSearchParams();
   const location = useLocation();
 
@@ -141,7 +143,8 @@ const MainPage = () => {
 
     setLoading(true);
     const r = await getBedrockResponse(
-      newContext.find((c) => c.title === clause.title)?.context ?? []
+      newContext.find((c) => c.title === clause.title)?.context ?? [],
+      token
     );
 
     newContext
