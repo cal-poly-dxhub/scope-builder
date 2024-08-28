@@ -13,6 +13,7 @@ import { useAuth } from "../Auth/AuthContext";
 import Chat from "./Chat";
 import ClauseSelector from "./ClauseSelector";
 import DocumentPanel from "./DocumentPanel";
+import { _document } from "../assets/types";
 const sow_prompt = prompts["sow_prompt"];
 const ScopeOfWork = templates.Clauses.find(
   (clause) => clause.category === "All"
@@ -85,7 +86,7 @@ const MainPage = () => {
     }
   );
   const clauseRef = useRef<string>("");
-  const [document, setDocument] = useState<
+  const [clauses, setClauses] = useState<
     {
       title: string;
       content: string;
@@ -105,7 +106,7 @@ const MainPage = () => {
       return;
     }
 
-    const incrementalTruths = getIncrementalTruths(document);
+    const incrementalTruths = getIncrementalTruths(clauses);
 
     const newPrompt = sow_prompt
       .replaceAll("--CLAUSE--", clause.clause.toString())
@@ -123,7 +124,7 @@ const MainPage = () => {
       )
       .replaceAll(
         "--SCOPE--",
-        document
+        clauses
           .find((doc) => doc.title === "Scope of Work")
           ?.content.toString() ?? ""
       )
@@ -160,21 +161,21 @@ const MainPage = () => {
       return;
     }
 
-    const existingDocumentIndex = document.findIndex(
-      (doc) => doc.title === currentClause.title
+    const existingDocumentIndex = clauses.findIndex(
+      (c) => c.title === currentClause.title
     );
     if (existingDocumentIndex !== -1) {
-      const newDocument = [...document];
+      const newDocument = [...clauses];
       newDocument[existingDocumentIndex] = {
         title: currentClause.title,
         content: currentClause.clause,
         summary: currentClause.summary,
         truths: currentClause.truths,
       };
-      setDocument(newDocument);
+      setClauses(newDocument);
     } else {
       const newDocument = [
-        ...document,
+        ...clauses,
         {
           title: currentClause.title,
           content: currentClause.clause,
@@ -182,7 +183,7 @@ const MainPage = () => {
           truths: currentClause.truths,
         },
       ];
-      setDocument(newDocument);
+      setClauses(newDocument);
     }
 
     setAccepted(false);
@@ -218,7 +219,7 @@ const MainPage = () => {
           currentCategory={category ?? ""}
           currentClause={currentClause}
           handleAddClause={handleAddClause}
-          document={document}
+          document={clauses}
           debug={DEBUG}
           style={{ width: "25vw" }}
         />
@@ -230,13 +231,13 @@ const MainPage = () => {
           setAccepted={setAccepted}
           currentClause={currentClause}
           setCurrentClause={setCurrentClause}
-          document={document}
+          document={clauses}
           debug={DEBUG}
           style={{ width: "50vw" }}
         />
         <DocumentPanel
-          document={document}
-          setDocument={setDocument}
+          document={clauses}
+          setDocument={setClauses}
           documentTitle={category + " Scope of Work"}
           sowgenContext={{
             contexts,
@@ -244,7 +245,15 @@ const MainPage = () => {
             userInstitution,
             supplier,
             documentPurpose,
-            document,
+            document: {
+              title: category + " Scope of Work",
+              date: new Date().toDateString(),
+              category,
+              description: "",
+              institution: userInstitution,
+              supplier,
+              clauses,
+            } as _document,
             currentClause,
             documentTitle: category + " Scope of Work",
           }}

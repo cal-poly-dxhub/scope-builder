@@ -8,7 +8,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { _style } from "../assets/types";
+import { _document, _style } from "../assets/types";
 
 const DocumentPanel = ({
   document,
@@ -49,12 +49,7 @@ const DocumentPanel = ({
     userInstitution: string | null;
     supplier: string | null;
     documentPurpose: string | null;
-    document: {
-      title: string;
-      content: string;
-      summary: string;
-      truths: string;
-    }[];
+    document: _document;
     currentClause: {
       title: string;
       clause: string;

@@ -16,9 +16,6 @@ const Landing = () => {
       <Typography variant="h4" gutterBottom>
         DxHub Automated Procurement
       </Typography>
-      <Typography variant="h6" gutterBottom marginBottom={4}>
-        Powered by AWS
-      </Typography>
       <Box sx={{ display: "flex", gap: 2 }}>
         <Link to="/sow-intro" style={{ textDecoration: "none" }}>
           <Button variant="contained" color="primary">

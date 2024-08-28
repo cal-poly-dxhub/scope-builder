@@ -19,6 +19,33 @@ import Navbar from "./Components/Navbar";
 const AppRouter = () => {
   const { token } = useAuth();
 
+  // delete below pre prod
+  // const sent = useRef(false);
+  // useEffect(() => {
+  //   if (sent.current) {
+  //     return;
+  //   }
+
+  //   sent.current = true;
+
+  //   getBedrockResponse(
+  //     [
+  //       {
+  //         role: "user",
+  //         content: [
+  //           {
+  //             type: "text",
+  //             text: "clams and hams",
+  //           },
+  //         ],
+  //       },
+  //     ],
+  //     ""
+  //   ).then((res) => {
+  //     console.log(res);
+  //   });
+  // }, []);
+
   return (
     <Router>
       <Navbar />

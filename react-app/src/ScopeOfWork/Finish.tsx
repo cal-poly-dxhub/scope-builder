@@ -2,15 +2,10 @@ import { Box, Button, TextField, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import prompts from "../assets/prompt.json";
-import { _clause } from "../assets/types";
+import { _clause, _document } from "../assets/types";
 import { useAuth } from "../Auth/AuthContext";
 import { downloadDocument } from "../scripts/Docx";
-import {
-  getBedrockResponse,
-  getCaluseTags,
-  getNumberTags,
-  getTitleTags,
-} from "../scripts/LLMGeneral";
+import { getBedrockResponse, getCaluseTags } from "../scripts/LLMGeneral";
 
 const sow_finalize = prompts["sow_finalize"];
 
@@ -18,8 +13,6 @@ const Finish = () => {
   const { token } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const document: { title: string; content: string; summary: string }[] =
-    location.state?.document || [];
   const documentTitle = location.state?.documentTitle || null;
   const sowgenContext: {
     contexts: {
@@ -34,8 +27,8 @@ const Finish = () => {
     currentClause: { title: string; clause: string; summary: string };
   } = location.state;
 
-  // for going back to edit document
   const generated = useRef(false);
+  const [document, setDocument] = useState<_document>(location.state?.document);
   const [formattedDocument, setFormattedDocument] = useState<
     { title: string; content: string }[]
   >([]);
@@ -45,38 +38,60 @@ const Finish = () => {
   const [selectedText, setSelectedText] = useState<string>("");
   const [inputText, setInputText] = useState<string>("");
 
-  const handleExport = async () => {
-    const message = sow_finalize + document.map((doc) => doc.content).join(" ");
-    const context = {
-      role: "user",
-      content: [{ type: "text", text: message }],
-    };
+  console.log("document");
+  console.log(JSON.stringify(document, null, 2));
 
-    const response = await getBedrockResponse([context], token);
+  const makeDocumentLLMReady = (document: _document) => {
+    let newDoc: string = "";
+    document.clauses.forEach((clause) => {
+      newDoc += `<${clause.title}>${clause.content}</${clause.title}>`;
+    });
 
-    const clauses = [];
-    while (true) {
-      const currentClause = getNumberTags(clauses.length + 1, response);
-      if (currentClause === "") {
-        break;
-      }
-
-      const title = getTitleTags([{ type: "text", text: currentClause }]);
-      const clause = getCaluseTags([{ type: "text", text: currentClause }]);
-      clauses.push({ title, content: clause });
-    }
-
-    setFormattedDocument(clauses);
-    setPreviousDocument(clauses);
+    return newDoc;
   };
 
-  useEffect(() => {
-    if (!generated.current) {
-      generated.current = true;
-      handleExport();
+  const generateDefinitionsClause = async () => {
+    if (document.clauses.find((doc) => doc.title === "Definitions and Terms")) {
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [generated.current]); // generate document on start
+
+    const llmdoc = makeDocumentLLMReady(document);
+    const prompt = `You are LUCAS, a specialist in generating scope of work documents. You are tasked with creating an definitions clause for the following document: <Document>${llmdoc}</Document>. Please review it and synthesize a definitions clause taht will be attached above the document. This clause will contain definitions of terms such as institution, supplier, and various other things relating to the document as a whole. The clause should be concise and clear, and should not contain any unnecessary information. The clause should also be free of any grammatical errors.\n\nRespond in the following XML structure. All text outside of these blocks will be ignored:<Thought>Your internal thought process</Thought><Clause>The modified clause</Clause>`;
+    const message = [
+      {
+        role: "user",
+        content: [{ type: "text", text: prompt }],
+      },
+    ];
+
+    const res = await getBedrockResponse(message, token);
+    const clauseContent = getCaluseTags(res);
+    return { title: "Definitions", content: clauseContent } as _clause;
+  };
+
+  const generateEngagementClause = async () => {
+    if (
+      document.clauses.find((doc) => doc.title === "Engagement of Contractor")
+    ) {
+      return;
+    }
+
+    const llmdoc = makeDocumentLLMReady(document);
+    const prompt = `You are LUCAS, a specialist in generating scope of work documents. You are tasked with creating an engagement clause for the following document: <Document>${llmdoc}</Document>. Please review it and synthesize an engagement clause that will be attached above the document. This clause will contain the engagement of the supplier and the institution. The clause should be concise and clear, and should not contain any unnecessary information. The clause should also be free of any grammatical errors.\n\nRespond in the following XML structure. All text outside of these blocks will be ignored:<Thought>Your internal thought process</Thought><Clause>The modified clause</Clause>`;
+    const message = [
+      {
+        role: "user",
+        content: [{ type: "text", text: prompt }],
+      },
+    ];
+
+    const res = await getBedrockResponse(message, token);
+    const clauseContent = getCaluseTags(res);
+    return {
+      title: "Engagement of Contractor",
+      content: clauseContent,
+    } as _clause;
+  };
 
   const handleTextSelect = () => {
     const selection = window.getSelection();
@@ -108,14 +123,14 @@ const Finish = () => {
     );
 
     const newClause = getCaluseTags(res);
+    console.log(clause.title, res);
     return newClause;
   };
 
   const handleEditDocument = async () => {
     const newClauses: _clause[] = [];
 
-    for (const clause of document) {
-      console.log(clause.title);
+    for (const clause of document.clauses) {
       const modifiedClause = await getEditedClause(clause);
       if (modifiedClause !== "") {
         newClauses.push({ title: clause.title, content: modifiedClause });
@@ -133,6 +148,60 @@ const Finish = () => {
   const handleUndo = () => {
     setFormattedDocument(previousDocument);
   };
+
+  useEffect(() => {
+    const handleGenerateClause = async () => {
+      const engagementClause = await generateEngagementClause();
+      const definitionsClause = await generateDefinitionsClause();
+
+      if (!engagementClause || !definitionsClause) {
+        console.error("Failed to generate clauses");
+        alert("Failed to generate clauses, please try again.");
+        return;
+      }
+
+      setDocument({
+        ...document,
+        clauses: [engagementClause, definitionsClause, ...document.clauses],
+      });
+    };
+
+    handleGenerateClause();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // generate clauses on start
+
+  // useEffect(() => {
+  //   const handleExport = async () => {
+  //     const message =
+  //       sow_finalize + document.clauses.map((c) => c.content).join(" ");
+  //     const context = {
+  //       role: "user",
+  //       content: [{ type: "text", text: message }],
+  //     };
+
+  //     const response = await getBedrockResponse([context], token);
+
+  //     const clauses = [];
+  //     while (true) {
+  //       const currentClause = getNumberTags(clauses.length + 1, response);
+  //       if (currentClause === "") {
+  //         break;
+  //       }
+
+  //       const title = getTitleTags([{ type: "text", text: currentClause }]);
+  //       const clause = getCaluseTags([{ type: "text", text: currentClause }]);
+  //       clauses.push({ title, content: clause });
+  //     }
+
+  //     setFormattedDocument(clauses);
+  //     setPreviousDocument(clauses);
+  //   };
+  //   if (!generated.current) {
+  //     generated.current = true;
+  //     handleExport();
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [generated.current]); // generate document on start
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
@@ -162,7 +231,7 @@ const Finish = () => {
           <Typography variant="h5" gutterBottom>
             {documentTitle}
           </Typography>
-          {formattedDocument &&
+          {/* {formattedDocument &&
             formattedDocument.map((doc, index) => (
               <Box
                 key={index}
@@ -179,6 +248,27 @@ const Finish = () => {
               </Box>
             ))}
           {formattedDocument.length === 0 && (
+            <Typography variant="body1">Generating Document...</Typography>
+          )} */}
+          {/* {document.clauses.find(
+            (doc) => doc.title === "Definitions and Terms" */}
+          {true ? (
+            document.clauses.map((doc, index) => (
+              <Box
+                key={index}
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  marginBottom: 2,
+                }}
+              >
+                <Typography variant="h6" gutterBottom>
+                  {doc.title}
+                </Typography>
+                <Typography variant="body1">{doc.content}</Typography>
+              </Box>
+            ))
+          ) : (
             <Typography variant="body1">Generating Document...</Typography>
           )}
         </Box>
