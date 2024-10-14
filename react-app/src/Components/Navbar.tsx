@@ -14,7 +14,7 @@ const Navbar = ({ style }: { style?: _style }) => {
       <AppBar position="static" style={style}>
         <Toolbar>
           <Link href="/" color="inherit" underline="none">
-            <Typography variant="h6">DxHub Automated Procurement</Typography>
+            <Typography variant="h6">Scope Builder</Typography>
           </Link>
           <Box ml="auto" display="flex" alignItems="center">
             <Link href="/sow-intro" color="inherit" underline="none" mx={2}>

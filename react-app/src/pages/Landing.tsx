@@ -14,7 +14,7 @@ const Landing = () => {
       }}
     >
       <Typography variant="h4" gutterBottom>
-        DxHub Automated Procurement
+        DxHub Scope Builder
       </Typography>
       <Box sx={{ display: "flex", gap: 2 }}>
         <Link to="/sow-intro" style={{ textDecoration: "none" }}>
