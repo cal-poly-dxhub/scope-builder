@@ -1,0 +1,24 @@
+{
+  "cdkToSam": {
+    "new lambda.Function": "WS::Serverless::Function",
+    "new apigateway.RestApi": "AWS::Serverless::Api",
+    "dynamodb.Table": "AWS::Serverless::SimpleTable",
+    "new s3.Bucket": "AWS::S3::Bucket",
+    "new sns.Topic": "AWS::SNS::Topic",
+    "new sqs.Queue": "AWS::SQS::Queue",
+    "new kinesis.Stream": "AWS::Kinesis::Stream",
+    "new dynamodb.Table": "AWS::DynamoDB::Table",
+    "iam.Role": "AWS::IAM::Role",
+    "iam.Policy": "AWS::IAM::Policy",
+    "cloudfront.Distribution": "AWS::CloudFront::Distribution",
+    "stepfunctions.StateMachine": "AWS::StepFunctions::StateMachine",
+    "logs.LogGroup": "AWS::Logs::LogGroup",
+    "logs.LogStream": "AWS::Logs::LogStream",
+    "events.Rule": "AWS::Events::Rule",
+    "events.Target": "AWS::Events::Target",
+    "events.RuleTarget": "AWS::Events::RuleTarget",
+    "ecr.Repository": "AWS::ECR::Repository",
+    "secretsmanager.Secret": "AWS::SecretsManager::Secret",
+    "ssm.StringParameter": "AWS::SSM::Parameter"
+  }
+}

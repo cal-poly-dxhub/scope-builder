@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Local Backbrace API
+Resources:
+  PythonFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handler.handler
+      Runtime: python3.9
+      CodeUri: lambda/python
+      Environment:
+        Variables:
+          IS_LOCAL: true
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /python
+            Method: get
+
+  JavaScriptFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handler.handler
+      Runtime: nodejs18.x
+      CodeUri: dist/lambda/javascript/
+      Environment:
+        Variables:
+          IS_LOCAL: true
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /javascript
+            Method: get

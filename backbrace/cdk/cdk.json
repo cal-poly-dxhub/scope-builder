@@ -1,0 +1,6 @@
+{
+  "app": "npx ts-node bin/backbrace-app.ts",
+  "context": {
+    "bootstrapStackName": "BackbraceToolkit"
+  }
+}

@@ -1,0 +1,6 @@
+dist/
+node_modules/
+.venv/
+cdk/cdk.out
+.env
+env.d.ts
