@@ -1,4 +1,4 @@
-import { javascript } from "./javascript";
+import { bedrock } from "./bedrock";
 import * as res from "./res";
 
 export const handler = async (
@@ -8,8 +8,8 @@ export const handler = async (
   const path = event.path;
 
   switch (path) {
-    case "/javascript":
-      return javascript(event, context);
+    case "/bedrock":
+      return bedrock(event, context);
     default:
       return res.send(404, { message: "Not Found" });
   }

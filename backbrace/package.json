@@ -17,6 +17,7 @@
     "setup": "cd scripts && sh setup.sh"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.670.0",
     "aws-cdk-lib": "^2.161.1",
     "aws-sdk": "^2.1000.0",
     "constructs": "^10.3.0",
