@@ -3,6 +3,8 @@ import p from "../assets/prompt.json";
 const gen_prompt = p["gen_prompt"];
 const read_prompt = p["read_prompt"];
 
+// const getApiKey = async () => {
+
 const generateContract = async (
   context: any[],
   userInput: string,
@@ -106,46 +108,28 @@ const getBedrockResponse = async (
 ) => {
   try {
     const body = JSON.stringify({
-      msg: messages,
-      system_prompt: "",
+      messages,
     });
     const url = process.env.REACT_APP_LAMBDA_ENDPOINT as string;
     const options = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        id_token: token,
+        "x-api-key": process.env.REACT_APP_API_KEY as string,
+        Authorization: `Bearer ${token}`,
       },
       body,
     };
 
-    const response = await fetch(url, options);
-    const data = (await response.json()) as {
-      search_answer: string;
-    };
+    console.log(JSON.stringify(token));
 
-    return [
-      // {
-      //   role: data.role,
-      // content: [
-      {
-        type: "text",
-        text: data.search_answer,
-      },
-      //   ],
-      // },
-    ];
+    const response = await fetch(url, options);
+    const data = await response.json();
+
+    return JSON.parse(data.body).responses;
   } catch (e) {
     console.log(e);
-    return [
-      // {
-      //   role: "assistant",
-      //   content:
-      // [
-      { type: "text", text: "An error occurred" },
-    ];
-    //   },
-    // ];
+    return [{ type: "text", text: "An error occurred" }];
   }
 };
 

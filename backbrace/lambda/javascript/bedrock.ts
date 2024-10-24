@@ -15,20 +15,13 @@ const client = new BedrockRuntimeClient({
 });
 
 export const bedrock = (event: any, contex: any) => {
-  //   const token = event.headers.id_token;
-  const body = JSON.parse(event.body);
-  if (!body) {
-    return res.send(400, { message: "Bad Requestb" });
-  }
+  // console.log("Full event:", JSON.stringify(event, null, 2));
+  // console.log("body:", JSON.stringify(event.body, null, 2));
 
-  const messages = body.messages;
+  const messages = event.messages;
   if (!messages) {
-    return res.send(400, { message: "Bad Requestm" });
+    return res.send(400, { message: "Bad Request (missing messages)" });
   }
-
-  console.log("\n--------\n\n\n");
-  console.log("event body: " + body);
-  console.log("\n\n\n-------------");
 
   return getBedrockResponse(messages).then((responses) => {
     return res.send(200, { responses });
