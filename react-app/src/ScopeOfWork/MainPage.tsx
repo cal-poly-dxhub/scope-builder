@@ -10,7 +10,7 @@ import {
 import prompts from "../assets/prompt.json";
 import templates from "../assets/SOWCategories.json";
 import { _document } from "../assets/types";
-import { useAuth } from "../Auth/AuthContext";
+import { useAuth } from "../constants/AuthProvider";
 import Chat from "./Chat";
 import ClauseSelector from "./ClauseSelector";
 import DocumentPanel from "./DocumentPanel";

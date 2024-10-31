@@ -4,7 +4,7 @@ import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import { _style } from "../assets/types";
-import { useAuth } from "../Auth/AuthContext";
+import { useAuth } from "../constants/AuthProvider";
 
 const Navbar = ({ style }: { style?: _style }) => {
   const { email, handleLogout } = useAuth();

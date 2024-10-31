@@ -1,8 +1,8 @@
 import { useState } from "react";
 import "./ContractGen.css";
 
-import { useAuth } from "../Auth/AuthContext";
 import Navbar from "../Components/Navbar";
+import { useAuth } from "../constants/AuthProvider";
 import { generateContract } from "../scripts/LLMGeneral";
 
 const ContractGen = () => {

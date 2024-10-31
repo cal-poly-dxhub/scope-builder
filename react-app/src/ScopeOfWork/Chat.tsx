@@ -10,8 +10,8 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { _style } from "../assets/types";
-import { useAuth } from "../Auth/AuthContext";
 import Message from "../Components/Message";
+import { useAuth } from "../constants/AuthProvider";
 import {
   getBedrockResponse,
   getCaluseTags,

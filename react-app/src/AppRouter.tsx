@@ -10,11 +10,11 @@ import SOWReadthrough from "./ScopeOfWork/Readthrough";
 import EditPage from "./Document/EditPage";
 import Landing from "./pages/Landing";
 
-import { useAuth } from "./Auth/AuthContext";
 import ConfirmPage from "./Auth/ConfirmPage";
 import LoginPage from "./Auth/LoginPage";
 import SignupPage from "./Auth/SignupPage";
 import Navbar from "./Components/Navbar";
+import { useAuth } from "./constants/AuthProvider";
 
 const AppRouter = () => {
   const { token } = useAuth();

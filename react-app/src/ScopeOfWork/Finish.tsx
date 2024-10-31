@@ -2,7 +2,7 @@ import { Box, Button, TextField, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { _clause, _document } from "../assets/types";
-import { useAuth } from "../Auth/AuthContext";
+import { useAuth } from "../constants/AuthProvider";
 import { downloadDocument } from "../scripts/Docx";
 import { getBedrockResponse, getCaluseTags } from "../scripts/LLMGeneral";
 

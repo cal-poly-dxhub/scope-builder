@@ -9,8 +9,8 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
-import { useAuth } from "../Auth/AuthContext";
 import Message from "../Components/Message";
+import { useAuth } from "../constants/AuthProvider";
 import {
   getBedrockResponse,
   getCaluseTags,

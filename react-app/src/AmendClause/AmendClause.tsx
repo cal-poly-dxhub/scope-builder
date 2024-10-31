@@ -2,7 +2,7 @@ import { Box, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import j from "../assets/prompt.json";
 import { _document } from "../assets/types";
-import { useAuth } from "../Auth/AuthContext";
+import { useAuth } from "../constants/AuthProvider";
 import { downloadDocument } from "../scripts/Docx";
 import {
   getBedrockResponse,

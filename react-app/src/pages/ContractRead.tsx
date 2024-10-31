@@ -1,8 +1,8 @@
 import { useState } from "react";
 import "./ContractRead.css";
 
-import { useAuth } from "../Auth/AuthContext";
 import Navbar from "../Components/Navbar";
+import { useAuth } from "../constants/AuthProvider";
 import { readContract } from "../scripts/LLMGeneral";
 
 const ContractRead = () => {

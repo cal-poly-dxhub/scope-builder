@@ -9,16 +9,17 @@ const client = new BedrockRuntimeClient({
   region: "us-west-2",
   credentials: {
     // don't know how to use env for this
-    accessKeyId: "",
-    secretAccessKey: "",
+    accessKeyId: "REMOVED",
+    secretAccessKey: "7cSoCjIpZPh8/2cDfsf0D5tkagGOcoVPVUomJ3F9",
   },
 });
 
 export const bedrock = (event: any, contex: any) => {
-  // console.log("Full event:", JSON.stringify(event, null, 2));
-  // console.log("body:", JSON.stringify(event.body, null, 2));
+  console.log("Full event:", JSON.stringify(event, null, 2));
+  console.log("body:", JSON.stringify(event.body, null, 2));
 
   const messages = event.messages;
+  // const messages = event.body.messages;
   if (!messages) {
     return res.send(400, { message: "Bad Request (missing messages)" });
   }

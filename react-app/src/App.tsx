@@ -1,7 +1,7 @@
 import { ThemeProvider } from "@emotion/react";
 import { createTheme } from "@mui/material";
-import { AuthProvider } from "./Auth/AuthContext";
 import AppRouter from "./AppRouter";
+import { AuthProvider } from "./constants/AuthProvider";
 
 const App = () => {
   const theme = createTheme({

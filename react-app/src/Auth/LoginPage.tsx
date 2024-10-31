@@ -1,7 +1,7 @@
 import { Button, Container, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import { theme } from "../assets/theme";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "../constants/AuthProvider";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
