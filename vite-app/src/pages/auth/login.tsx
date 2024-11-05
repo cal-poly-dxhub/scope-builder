@@ -1,11 +1,25 @@
 import { Box, Button, Container, Text, TextInput } from "@mantine/core";
 import { useState } from "react";
+import { useAuth } from "../../constants/AuthProvider";
 
 export const Login = () => {
+  const { attemptLogin } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = async () => {};
+  const handleLogin = async () => {
+    attemptLogin(
+      email,
+      password,
+      () => {
+        window.location.href = "/";
+      },
+      (err) => {
+        alert("Failed to log in. Check your email and password.");
+        console.error(err);
+      }
+    );
+  };
 
   return (
     <Container
