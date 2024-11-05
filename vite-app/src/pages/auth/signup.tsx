@@ -1,11 +1,11 @@
 import { Box, Button, Container, Text, TextInput } from "@mantine/core";
 import { useState } from "react";
 
-export const Login = () => {
+export const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = async () => {};
+  const handleSignup = async () => {};
 
   return (
     <Container
@@ -17,7 +17,7 @@ export const Login = () => {
     >
       <Box>
         <Text size="xl" style={{ fontWeight: "bold" }}>
-          Log in
+          Sign up
         </Text>
         <Box mt="md">
           <TextInput
@@ -34,8 +34,8 @@ export const Login = () => {
             value={password}
             onChange={(event) => setPassword(event.currentTarget.value)}
           />
-          <Button variant="filled" mt="lg" onClick={handleLogin}>
-            Log in
+          <Button variant="filled" mt="lg" onClick={handleSignup}>
+            Sign up
           </Button>
         </Box>
       </Box>
