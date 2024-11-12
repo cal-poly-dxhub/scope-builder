@@ -1,7 +1,7 @@
 import { Box, Button, Container, Text, TextInput } from "@mantine/core";
 import { useState } from "react";
 
-export const Signup = () => {
+export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -41,4 +41,4 @@ export const Signup = () => {
       </Box>
     </Container>
   );
-};
+}

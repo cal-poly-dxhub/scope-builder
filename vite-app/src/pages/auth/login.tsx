@@ -2,7 +2,7 @@ import { Box, Button, Container, Text, TextInput } from "@mantine/core";
 import { useState } from "react";
 import { useAuth } from "../../constants/AuthProvider";
 
-export const Login = () => {
+export default function Login() {
   const { attemptLogin } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -55,4 +55,4 @@ export const Login = () => {
       </Box>
     </Container>
   );
-};
+}

@@ -1,6 +1,6 @@
 import { Box, Container, Text } from "@mantine/core";
 
-export const NotFound = () => {
+export default function NotFound() {
   return (
     <Container
       size="md"
@@ -16,4 +16,4 @@ export const NotFound = () => {
       </Box>
     </Container>
   );
-};
+}

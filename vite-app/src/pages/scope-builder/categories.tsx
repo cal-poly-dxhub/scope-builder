@@ -2,19 +2,22 @@ import { Box, Button, Container, Select, Text, TextInput } from "@mantine/core";
 import { useState } from "react";
 import categories from "../../assets/categories.json";
 
-export const Categories = () => {
+export default function Categories() {
   const [userInstitution, setUserInstitution] = useState("");
   const [supplier, setSupplier] = useState("");
   const [documentPurpose, setDocumentPurpose] = useState("");
   const [category, setCategory] = useState<string | null>("");
 
   const handleSubmit = () => {
-    console.log({
+    const formData = {
       userInstitution,
       supplier,
       documentPurpose,
       category,
-    });
+    };
+
+    sessionStorage.setItem("formData", JSON.stringify(formData));
+    window.location.href = "/scope-builder/builder";
   };
 
   return (
@@ -72,4 +75,4 @@ export const Categories = () => {
       </Button>
     </Container>
   );
-};
+}
