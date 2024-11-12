@@ -18,7 +18,7 @@ export const Header = () => {
               <Button
                 variant="subtle"
                 component="a"
-                href="/scope-builder"
+                href="/scope-builder/categories"
                 style={{ textDecoration: "none" }}
               >
                 Scope Building Tool
