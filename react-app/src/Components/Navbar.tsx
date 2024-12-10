@@ -34,7 +34,7 @@ const Navbar = ({ style }: { style?: _style }) => {
               </Link>
             ) : (
               <Link href="/login" color="inherit" underline="none" mx={2}>
-                <Typography variant="body1">Login</Typography>
+                <Typography variant="body1">Amend Clause</Typography>
               </Link>
             )}
           </Box>
