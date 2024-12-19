@@ -3,7 +3,7 @@ import { Container, Text } from "@mantine/core";
 const Amend = () => {
   return (
     <Container style={styles.container}>
-      <Text>Amend</Text>
+      <Text>working on it...</Text>
     </Container>
   );
 };

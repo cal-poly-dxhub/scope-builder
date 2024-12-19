@@ -21,6 +21,8 @@ const InitialInfo = () => {
   const [documentPurpose, setDocumentPurpose] = useState("");
   const [category, setCategory] = useState("");
 
+  const startTime = new Date().getTime();
+
   const handleSubmit = () => {
     navigate(
       `/sow-gen?category=${encodeURIComponent(
@@ -29,7 +31,9 @@ const InitialInfo = () => {
         userInstitution
       )}&supplier=${encodeURIComponent(
         supplier
-      )}&documentPurpose=${encodeURIComponent(documentPurpose)}`
+      )}&documentPurpose=${encodeURIComponent(
+        documentPurpose
+      )}&startTime=${startTime}`
     );
   };
 

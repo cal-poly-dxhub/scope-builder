@@ -76,11 +76,11 @@ const DocumentPanel = ({
   };
 
   return (
-    <Box sx={style} height="auto">
+    <Box sx={style}>
       <Typography variant="h4" gutterBottom>
         Current Document
       </Typography>
-      <Box>
+      <Box height="84vh" sx={{ overflowY: "auto" }}>
         {document.map((doc, index) => (
           <Card key={index} sx={{ mb: 2 }}>
             <CardContent>

@@ -10,28 +10,29 @@
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.602.0",
-    "amazon-cognito-identity-js": "^6.3.12",
     "@mantine/core": "^7.14.3",
     "@mantine/hooks": "^7.14.3",
+    "amazon-cognito-identity-js": "^6.3.12",
+    "docx": "^8.5.0",
+    "fs": "^0.0.1-security",
+    "jwt-decode": "^4.0.0",
     "next": "15.0.4",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "docx": "^8.5.0",
-    "fs": "^0.0.1-security"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "aws-cdk": "^2",
+    "aws-cdk-lib": "^2",
+    "constructs": "^10.0.0",
+    "esbuild": "^0.23.0",
     "eslint": "^8",
     "eslint-config-next": "15.0.4",
     "postcss": "^8.4.49",
     "postcss-preset-mantine": "^1.17.0",
     "postcss-simple-vars": "^7.0.1",
-    "typescript": "^5",
-    "aws-cdk": "^2",
-    "aws-cdk-lib": "^2",
-    "constructs": "^10.0.0",
-    "esbuild": "^0.23.0"
+    "typescript": "^5"
   }
 }

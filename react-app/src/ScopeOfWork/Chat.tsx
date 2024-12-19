@@ -21,6 +21,7 @@ import {
 } from "../scripts/LLMGeneral";
 
 const Chat = ({
+  startTime,
   loading,
   setLoading,
   contexts,
@@ -32,6 +33,7 @@ const Chat = ({
   debug = false,
   style,
 }: {
+  startTime: number;
   loading: boolean;
   setLoading: (loading: boolean) => void;
   contexts: {
@@ -66,7 +68,7 @@ const Chat = ({
   debug?: boolean;
   style?: _style;
 }) => {
-  const { token } = useAuth();
+  const { token, email } = useAuth();
   const [inputValue, setInputValue] = useState<string>("");
   const [clausePopup, setClausePopup] = useState<boolean>(false);
 
@@ -109,8 +111,16 @@ const Chat = ({
 
     setContexts(newContexts);
 
+    const session = email + "-" + startTime;
+
     setLoading(true);
-    const r = await getBedrockResponse(newContext, token);
+    const r = await getBedrockResponse(
+      newContext,
+      token,
+      true,
+      session,
+      currentClause.title
+    );
     const finishedClause = getCaluseTags(r);
     const summary = getSummaryTags(r);
     const truths = getTruthsTags(r);

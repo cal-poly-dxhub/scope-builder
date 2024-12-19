@@ -104,13 +104,21 @@ const readContract = async (
 
 const getBedrockResponse = async (
   messages: { role: string; content: { type: string; text: string }[] }[],
-  token: string
+  token: string,
+  log: boolean = false,
+  session?: string,
+  clause?: string
 ) => {
   try {
     const body = JSON.stringify({
       messages,
+      session: session ?? "defaultSession",
+      clause: clause ?? "defaultClause",
+      log,
     });
-    const url = process.env.REACT_APP_LAMBDA_ENDPOINT as string;
+
+    const url = process.env.REACT_APP_LAMBDA_ENDPOINT!;
+
     const options = {
       method: "POST",
       headers: {
@@ -121,7 +129,7 @@ const getBedrockResponse = async (
       body,
     };
 
-    console.log(JSON.stringify(token));
+    // console.log(JSON.stringify(token));
 
     const response = await fetch(url, options);
     const data = await response.json();

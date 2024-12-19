@@ -2,6 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as cognito from "aws-cdk-lib/aws-cognito";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as s3 from "aws-cdk-lib/aws-s3";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import { Construct } from "constructs";
 
@@ -46,7 +47,7 @@ export class BackbraceAppStack extends cdk.Stack {
         stageName: "prod",
       },
       defaultCorsPreflightOptions: {
-        allowOrigins: ["http://localhost:3000"],
+        allowOrigins: ["*"],
         allowMethods: ["OPTIONS", "POST"],
         allowHeaders: ["Content-Type", "Authorization", "X-Api-Key"],
         allowCredentials: true,
@@ -94,8 +95,7 @@ export class BackbraceAppStack extends cdk.Stack {
           {
             statusCode: "200",
             responseParameters: {
-              "method.response.header.Access-Control-Allow-Origin":
-                "'http://localhost:3000'",
+              "method.response.header.Access-Control-Allow-Origin": "'*'",
               "method.response.header.Access-Control-Allow-Headers":
                 "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
               "method.response.header.Access-Control-Allow-Methods":
@@ -126,5 +126,13 @@ export class BackbraceAppStack extends cdk.Stack {
     });
 
     secret.grantRead(bedrockFunction);
+
+    const usageLogBucket = new s3.Bucket(this, "ScopeBuilderUsageLogs", {
+      bucketName: "scopebuilder-usage-logs",
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+    });
+
+    usageLogBucket.grantReadWrite(bedrockFunction);
   }
 }

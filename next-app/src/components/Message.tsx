@@ -1,44 +1,30 @@
-import { Box, Text } from "@mantine/core";
-import { getCaluseTags, getResponseTags } from "../scripts/LLMGeneral";
+import { _message } from "@/constants/types";
+import { Paper, Text } from "@mantine/core";
+import { getClauseTags, getResponseTags } from "../scripts/extract";
 
-interface MessageProps {
-  message: {
-    role: string;
-    content: { type: string; text: string }[];
-  };
-}
-
-const Message: React.FC<MessageProps> = ({ message }) => {
-  const isUser = message.role === "user";
+const Message = ({
+  message,
+  currentClauseTitle,
+}: {
+  message: _message;
+  currentClauseTitle?: string;
+}) => {
   const isAssistant = message.role === "assistant";
 
-  const getMessageContent = () => {
-    if (isAssistant) {
-      const clauseText = getCaluseTags(message.content);
-      if (clauseText) {
-        return clauseText;
-      }
-
-      return getResponseTags(message.content);
-    }
-
-    return message.content.map((content) => content.text).join(" ");
-  };
+  const messageContent = message.content[0].text.includes(
+    "You are LUCAS, a procurement manager assistant specialized in creating"
+  )
+    ? "Start working on " + (currentClauseTitle ?? "clause")
+    : isAssistant
+    ? getClauseTags(message)
+      ? getClauseTags(message)
+      : getResponseTags(message)
+    : message.content[0].text;
 
   return (
-    <Box
-      style={{
-        marginBottom: 2,
-        backgroundColor: isUser ? "#aca" : "#e0e0e0",
-        padding: 1,
-        borderRadius: 1,
-        width: "auto",
-      }}
-    >
-      <Text c={message.role === "user" ? "blue.0" : "black.0"}>
-        {getMessageContent()}
-      </Text>
-    </Box>
+    <Paper bg={isAssistant ? "gray.0" : "green.1"} p="xs">
+      <Text c="black">{messageContent || "Error: No message content"}</Text>
+    </Paper>
   );
 };
 

@@ -275,7 +275,7 @@ const Finish = () => {
             </Box>
           </Box>
         )}
-        <Box sx={{ display: "flex", gap: 2 }}>
+        <Box sx={{ display: "flex", gap: 2, marginBottom: "2vh" }}>
           <Button
             variant="contained"
             onClick={() => {

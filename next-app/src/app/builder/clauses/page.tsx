@@ -2,219 +2,186 @@
 
 import Chat from "@/components/builder/Chat";
 import ClauseSelector from "@/components/builder/ClauseSelector";
-import { useAuth } from "@/constants/AuthContext";
-import { clauses } from "@/constants/categories";
-import { sow_prompt } from "@/constants/prompt";
-import { _document } from "@/constants/types";
-import { getBedrockResponse, getIncrementalTruths } from "@/scripts/LLMGeneral";
+import DocumentPanel from "@/components/builder/DocumentPanel";
+import { templates } from "@/constants/templates";
+import {
+  _clause,
+  _clauseTemplate,
+  _document,
+  _message,
+} from "@/constants/types";
+import { getClausePromptResponse } from "@/scripts/nextapi";
 import { Grid, GridCol } from "@mantine/core";
 import { useEffect, useRef, useState } from "react";
 
-const ScopeOfWork = clauses
-  .find((clause) => clause.category === "All")
-  ?.clauses.find((clause) => clause.title === "Scope of Work");
-
 const Clauses = () => {
-  const { token } = useAuth();
-
-  const sowgenContext: {
-    contexts: {
-      title: string;
-      context: { role: string; content: { type: string; text: string }[] }[];
-    }[];
-    category: string;
-    userInstitution: string;
-    supplier: string;
-    documentPurpose: string;
-    document: _document;
-    clauses: {
-      title: string;
-      content: string;
-      summary: string;
-      truths: string;
-    }[];
-    currentClause: {
-      title: string;
-      clause: string;
-      summary: string;
-      truths: string;
-    };
-    documentTitle: string;
-  } = JSON.parse(sessionStorage["sowgenContext"] ?? "{}");
-
-  // from params
-  const category =
-    sowgenContext?.category ??
-    JSON.parse(sessionStorage["scopeData"]?.category ?? "{}");
-  const userInstitution =
-    sowgenContext?.category ??
-    JSON.parse(sessionStorage["scopeData"]?.userInstitution ?? "{}");
-  const supplier =
-    sowgenContext?.category ??
-    JSON.parse(sessionStorage["scopeData"]?.supplier ?? "{}");
-  const documentPurpose =
-    sowgenContext?.category ??
-    JSON.parse(sessionStorage["scopeData"]?.documentPurpose ?? "{}");
-  // for sowchat
   const [loading, setLoading] = useState<boolean>(false);
-  const [contexts, setContexts] = useState<
-    {
-      title: string;
-      context: {
-        role: string;
-        content: { type: string; text: string }[];
-      }[];
-    }[]
-  >(sowgenContext?.contexts ?? []);
-
-  // for curdocument
-  const [accepted, setAccepted] = useState<boolean>(false);
-  const [currentClause, setCurrentClause] = useState<{
-    title: string;
-    clause: string;
-    summary: string;
-    truths: string;
-  }>(
-    sowgenContext?.currentClause ?? {
-      title: "",
-      clause: "",
-      summary: "",
-      truths: "",
-    }
+  const [finishedClauses, setFinishedClauses] = useState<_clause[]>(
+    JSON.parse(sessionStorage["document"] ?? "[]")?.clauses ?? []
   );
-  const clauseRef = useRef<string>("");
-  const [clauses, setClauses] = useState<
-    {
-      title: string;
-      content: string;
-      summary: string;
-      truths: string;
-    }[]
-  >(sowgenContext?.clauses ?? []);
 
-  const handleAddClause = async (clause: { title: string; clause: string }) => {
-    setCurrentClause({ ...clause, summary: "", truths: "" });
-    if (contexts.find((c) => c.title === clause.title) !== undefined) {
+  // console.log("sessionStorage:", sessionStorage);
+
+  const contexts = useRef<
+    {
+      clause: _clause;
+      messages: _message[];
+    }[]
+  >(JSON.parse(sessionStorage["context"] ?? "[]") || []);
+  const [currentMessages, setCurrentMessages] = useState<_message[]>(
+    contexts.current[0]?.messages ?? []
+  );
+  const [currentClauseTitle, setCurrentClauseTitle] = useState<string>("");
+
+  const category = JSON.parse(sessionStorage["scopeData"])?.category;
+  const userInstitution = JSON.parse(
+    sessionStorage["scopeData"]
+  )?.userInstitution;
+  const supplier = JSON.parse(sessionStorage["scopeData"])?.supplier;
+  const documentPurpose = JSON.parse(
+    sessionStorage["scopeData"]
+  )?.documentPurpose;
+
+  const appendMessage = (clauseTitle: string, message: _message) => {
+    const contextIndex = contexts.current.findIndex(
+      (c) => c.clause.title === clauseTitle
+    );
+
+    if (contextIndex === -1) {
       return;
     }
 
-    const incrementalTruths = getIncrementalTruths(clauses);
+    setCurrentMessages((prevMessages) => {
+      const newMessages = [...prevMessages, message];
+      contexts.current[contextIndex].messages = newMessages;
+      return newMessages;
+    });
 
-    const newPrompt = sow_prompt
-      .replaceAll("--CLAUSE--", clause.clause.toString())
-      .replaceAll(
-        "--INSTITUTION--",
-        userInstitution?.toString() ?? "(institution not given)"
-      )
-      .replaceAll(
-        "--SUPPLIER--",
-        supplier?.toString() ?? "(supplier not given)"
-      )
-      .replaceAll(
-        "--PURPOSE--",
-        category?.toString() + ", " + documentPurpose?.toString()
-      )
-      .replaceAll(
-        "--SCOPE--",
-        clauses
-          .find((doc) => doc.title === "Scope of Work")
-          ?.content.toString() ?? ""
-      )
-      .concat(incrementalTruths);
-
-    const newContext = [
-      ...contexts,
-      {
-        title: clause.title,
-        context: [
-          { role: "user", content: [{ type: "text", text: newPrompt }] },
-        ],
-      },
-    ];
-
-    setContexts(newContext);
-
-    setLoading(true);
-    const r = await getBedrockResponse(
-      newContext.find((c) => c.title === clause.title)?.context ?? [],
-      token
-    );
-
-    newContext
-      .find((c) => c.title === clause.title)
-      ?.context.push({ role: "assistant", content: r });
-    setContexts(newContext);
-    setLoading(false);
+    sessionStorage.setItem("context", JSON.stringify(contexts.current));
   };
 
-  // if accepted add to document
-  useEffect(() => {
-    if (!accepted) {
+  // when clause is added to chat
+  const handleAddClauseTemplate = async (clause: _clauseTemplate) => {
+    let cc = contexts.current.find((c) => c.clause.title === clause.title);
+    if (cc === undefined) {
+      setLoading(true);
+      setCurrentClauseTitle(clause.title);
+      const initialMessage = {
+        role: "user",
+        content: [{ type: "text", text: "Start working on " + clause.title }],
+      };
+      setCurrentMessages([initialMessage]);
+
+      const responses = await getClausePromptResponse(
+        userInstitution,
+        supplier,
+        clause,
+        category,
+        documentPurpose,
+        contexts.current.find((c) => c.clause.title === "Scope of Work")?.clause
+          .content ?? "",
+        ""
+      );
+
+      setCurrentMessages(responses);
+      contexts.current.push({
+        clause: {
+          title: clause.title,
+          content: "",
+          notes: "",
+        },
+        messages: responses,
+      });
+
+      setLoading(false);
+    }
+
+    cc = contexts.current.find((c) => c.clause.title === clause.title);
+    setCurrentClauseTitle(cc!.clause.title);
+    setCurrentMessages(cc!.messages);
+    sessionStorage.setItem("context", JSON.stringify(contexts.current));
+  };
+
+  // when clause is accepted
+  const acceptClause = (clause: _clause) => {
+    const filteredFinishedClauses = finishedClauses.filter(
+      (c) => c.title !== clause.title
+    );
+
+    setFinishedClauses([...filteredFinishedClauses, clause]);
+
+    const newDocument: _document = {
+      title: "New Scope of Work",
+      date: new Date().toISOString(),
+      category: category ?? "",
+      institution: userInstitution ?? "",
+      supplier: supplier ?? "",
+      purpose: documentPurpose ?? "",
+      clauses: [...filteredFinishedClauses, clause],
+    };
+    sessionStorage.setItem("document", JSON.stringify(newDocument));
+  };
+
+  // on clause edit button
+  const handleChangeClause = (clauseTitle: string) => {
+    const cc = contexts.current.find((c) => c.clause.title === clauseTitle);
+    if (cc === undefined) {
+      console.error("Could not find clause in context");
       return;
     }
 
-    const existingDocumentIndex = clauses.findIndex(
-      (c) => c.title === currentClause.title
-    );
-    if (existingDocumentIndex !== -1) {
-      const newDocument = [...clauses];
-      newDocument[existingDocumentIndex] = {
-        title: currentClause.title,
-        content: currentClause.clause,
-        summary: currentClause.summary,
-        truths: currentClause.truths,
-      };
-      setClauses(newDocument);
-    } else {
-      const newDocument = [
-        ...clauses,
-        {
-          title: currentClause.title,
-          content: currentClause.clause,
-          summary: currentClause.summary,
-          truths: currentClause.truths,
-        },
-      ];
-      setClauses(newDocument);
-    }
-
-    setAccepted(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accepted]);
+    setCurrentClauseTitle(cc.clause.title);
+    setCurrentMessages(cc.messages);
+  };
 
   // auto select Scope of Work clause
   useEffect(() => {
-    if (clauseRef.current === "" && ScopeOfWork && contexts.length === 0) {
-      clauseRef.current = ScopeOfWork.title;
-      handleAddClause(ScopeOfWork);
-    }
+    const initialClause = templates
+      .find((t) => t.category === "All")
+      ?.clauses.find((c) => c.title === "Scope of Work");
 
+    if (initialClause) {
+      handleAddClauseTemplate(initialClause);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <Grid h="calc(100vh - 70px)" p={0}>
-      <GridCol span={4}>
+    <Grid h="calc(100vh - 70px)" p={0} w="99vw">
+      {/* <Button
+        variant="outline"
+        onClick={() => {
+          console.log("currentClauseTitle:", currentClauseTitle);
+          console.log("currentMessages:", currentMessages);
+          console.log("contexts:", contexts.current);
+        }}
+      >
+        Log Context
+      </Button> */}
+      <GridCol span={3}>
         <ClauseSelector
-          currentCategory={category ?? ""}
-          currentClause={currentClause}
-          handleAddClause={handleAddClause}
-          document={clauses}
+          category={category ?? ""}
+          currentClauseTitle={currentClauseTitle}
+          handleAddClauseTemplate={handleAddClauseTemplate}
         />
       </GridCol>
-      <GridCol span={4}>
+      <GridCol span={6}>
         <Chat
           loading={loading}
           setLoading={setLoading}
-          contexts={contexts}
-          setContexts={setContexts}
-          setAccepted={setAccepted}
-          currentClause={currentClause}
-          setCurrentClause={setCurrentClause}
-          document={clauses}
+          messages={currentMessages}
+          appendMessage={appendMessage}
+          acceptClause={acceptClause}
+          currentClauseTitle={currentClauseTitle}
         />
       </GridCol>
-      <GridCol span={4}></GridCol>
+      <GridCol span={3}>
+        <DocumentPanel
+          finishedClauses={finishedClauses}
+          setFinishedClauses={setFinishedClauses}
+          handleChangeClause={handleChangeClause}
+        />
+      </GridCol>
     </Grid>
   );
 };

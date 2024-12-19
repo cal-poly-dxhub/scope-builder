@@ -25,14 +25,24 @@ export const Header = () => {
               >
                 SOW Generator
               </Button>
-              <Button
+              {/* <Button
                 variant="light"
                 component="a"
                 href="/projects"
                 style={{ textDecoration: "none" }}
               >
                 Amend Clause
-              </Button>
+              </Button> */}
+              {/* <Button
+                variant="outline"
+                style={{ textDecoration: "none" }}
+                onClick={() => {
+                  const t = sessionStorage.getItem("token");
+                  console.log("token", t);
+                }}
+              >
+                log token
+              </Button> */}
               {email ? (
                 <Button
                   variant="outline"

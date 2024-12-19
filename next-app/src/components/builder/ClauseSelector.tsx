@@ -1,200 +1,160 @@
-import { clauses } from "@/constants/categories";
-import { _style } from "@/constants/types";
-import { Box, Button, Modal, Text, Textarea, TextInput } from "@mantine/core";
-import { useState } from "react";
-
-interface CustomTemplate {
-  title: string;
-  clause: string;
-}
+import { templates } from "@/constants/templates";
+import { _clause, _clauseTemplate } from "@/constants/types";
+import {
+  Button,
+  Group,
+  Modal,
+  Stack,
+  Text,
+  Textarea,
+  TextInput,
+} from "@mantine/core";
+import { useEffect, useState } from "react";
 
 const ClauseSelector = ({
-  currentCategory,
-  currentClause,
-  handleAddClause,
-  document,
-  style,
+  category,
+  currentClauseTitle,
+  handleAddClauseTemplate,
 }: {
-  currentCategory: string;
-  currentClause: { title: string; clause: string };
-  handleAddClause: (clause: { title: string; clause: string }) => Promise<void>;
-  document: { title: string; content: string }[];
+  category: string;
+  currentClauseTitle: string;
+  handleAddClauseTemplate: (clause: _clauseTemplate) => Promise<void>;
   debug?: boolean;
-  style?: _style;
 }) => {
-  const [customModal, setCustomModal] = useState<boolean>(false);
-  const [customTemplate, setCustomTemplate] = useState<CustomTemplate>({
+  const [modalShown, setModalShown] = useState<boolean>(false);
+  const [customClause, setCustomClause] = useState<_clauseTemplate>({
     title: "",
-    clause: "",
+    requirements: "",
   });
-
-  const templates = clauses.filter(
-    (clause) => clause.category === currentCategory || clause.category === "All"
+  const [startedClauseTitles, setStartedClauseTitles] = useState<string[]>(
+    JSON.parse(sessionStorage["document"] ?? "[]")?.clauses?.map(
+      (clause: _clause) => clause.title
+    ) ?? []
   );
 
-  const [customTemplates, setCustomTemplates] = useState<CustomTemplate[]>([]);
+  const clauseTemplates = templates.filter(
+    (clause) => clause.category === category || clause.category === "All"
+  );
 
-  const handleAddCustomClause = () => {
-    setCustomTemplates([...customTemplates, customTemplate]);
-    setCustomTemplate({ title: "", clause: "" });
-    setCustomModal(false);
+  const [customClauses, setCustomClauses] = useState<_clauseTemplate[]>([]);
+
+  const handleCreateCustomClause = () => {
+    setCustomClauses([...customClauses, customClause]);
+    setCustomClause({ title: "", requirements: "" });
+    setModalShown(false);
   };
 
+  // set started clause titles
+  useEffect(() => {
+    const oldStartedClauseTitles = startedClauseTitles;
+    if (
+      currentClauseTitle &&
+      !oldStartedClauseTitles.includes(currentClauseTitle)
+    ) {
+      setStartedClauseTitles([...oldStartedClauseTitles, currentClauseTitle]);
+    }
+  }, [currentClauseTitle]);
+
   return (
-    <Box style={style}>
-      <Text variant="h4">Add Clauses</Text>
-      <Box>
-        {templates.map((clause, index) => {
-          return (
-            <Box key={index}>
-              <Text variant="h6">{clause.category}</Text>
-              <Box>
-                {clause.clauses.map((clause, index) => {
-                  const selected = currentClause.title === clause.title;
-                  const inDocument = document.find(
-                    (doc) => doc.title === clause.title
-                  )
-                    ? true
-                    : false;
-                  return (
-                    <Box
-                      key={index}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        padding: "10px 5px 10px 15px",
-                        borderRadius: "5px",
-                        borderBottom:
-                          selected || inDocument
-                            ? `1px solid var(--background-color)`
-                            : `1px solid var(--border-color)`,
-                        backgroundColor: selected
-                          ? "var(--alternate-color)"
-                          : inDocument
-                          ? "#c0c0c0"
-                          : "transparent",
-                      }}
-                    >
-                      <Text variant="body1">{clause.title}</Text>
-                      <Button
-                        variant="contained"
-                        disabled={selected || inDocument}
-                        onClick={() => {
-                          handleAddClause(clause);
-                        }}
-                      >
-                        Add Clause
-                      </Button>
-                    </Box>
-                  );
-                })}
-              </Box>
-            </Box>
-          );
-        })}
-        <Box>
-          <Text variant="h6">Custom Clauses</Text>
-          {customTemplates.map((clause, index) => {
-            const selected = currentClause.title === clause.title;
-            const inDocument = document.find(
-              (doc) => doc.title === clause.title
-            )
-              ? true
-              : false;
-            return (
-              <Box
-                key={index}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "10px 5px 10px 15px",
-                  borderRadius: "5px",
-                  borderBottom: `1px solid var(--background-color)`,
-                  backgroundColor: selected
-                    ? "var(--alternate-color)"
-                    : inDocument
-                    ? "#c0c0c0"
-                    : "transparent",
-                }}
-              >
-                <Text variant="body1">{clause.title}</Text>
-                <Button
-                  variant="contained"
-                  onClick={() => handleAddClause(clause)}
-                  disabled={selected || inDocument}
+    <Stack
+      h="calc(100vh - 93px)"
+      px="sm"
+      pb="21px"
+      style={{ overflowY: "auto" }}
+    >
+      <Text size="lg" fw="bold">
+        Add Clauses
+      </Text>
+      {clauseTemplates.map((template, index) => {
+        return (
+          <Stack key={index}>
+            <Text fw="bold">{template.category}</Text>
+            {[...template.clauses, ...customClauses].map((clause, index) => {
+              const selected = currentClauseTitle === clause.title;
+              const started = startedClauseTitles.includes(clause.title);
+              return (
+                <Group
+                  key={index}
+                  bg={selected ? "green.0" : started ? "gray.0" : "transparent"}
+                  justify="space-between"
+                  p="xs"
+                  style={{ borderRadius: 8 }}
                 >
-                  Add Clause
-                </Button>
-              </Box>
-            );
-          })}
-          <Box
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "10px 5px 10px 15px",
-              borderRadius: "5px",
-              borderBottom: `1px solid var(--border-color)`,
-            }}
-          >
-            <Text variant="body1">Custom Clause</Text>
-            <Button variant="contained" onClick={() => setCustomModal(true)}>
-              Add Clause
-            </Button>
-          </Box>
-        </Box>
-      </Box>
+                  <Text>{clause.title}</Text>
+                  <Button
+                    variant="light"
+                    disabled={selected}
+                    onClick={() => {
+                      handleAddClauseTemplate(clause);
+                    }}
+                  >
+                    {selected
+                      ? "Editing Clause"
+                      : started
+                      ? "Edit Clause"
+                      : "Add Clause"}
+                  </Button>
+                </Group>
+              );
+            })}
+          </Stack>
+        );
+      })}
+      <Group justify="space-between">
+        <Text>Custom Clause</Text>
+        <Button variant="light" onClick={() => setModalShown(true)}>
+          Add a Custom Clause
+        </Button>
+      </Group>
       <Modal
-        opened={customModal}
-        onClose={() => setCustomModal(false)}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
+        opened={modalShown}
+        onClose={() => setModalShown(false)}
+        title={
+          <Text size="lg" fw="bold">
+            Add Custom Clause
+          </Text>
+        }
       >
-        <Box>
-          <Text variant="h6">Add Custom Clause</Text>
-          <Box>
-            <TextInput
-              placeholder="Enter the title of the clause..."
-              value={customTemplate.title}
-              onChange={(e) =>
-                setCustomTemplate({
-                  ...customTemplate,
-                  title: e.target.value,
-                })
-              }
-              variant="outlined"
-            />
-            <Textarea
-              placeholder="Enter your custom clause here..."
-              value={customTemplate.clause}
-              onChange={(e) =>
-                setCustomTemplate({
-                  ...customTemplate,
-                  clause: e.target.value,
-                })
-              }
-            />
-          </Box>
-          <Box>
-            <Button variant="contained" onClick={handleAddCustomClause}>
+        <Stack>
+          <TextInput
+            placeholder="Enter the title of the clause..."
+            value={customClause.title}
+            size="md"
+            fw="bold"
+            onChange={(e) =>
+              setCustomClause({
+                ...customClause,
+                title: e.target.value,
+              })
+            }
+          />
+          <Textarea
+            placeholder="Enter your custom clause here..."
+            value={customClause.requirements}
+            onChange={(e) =>
+              setCustomClause({
+                ...customClause,
+                requirements: e.target.value,
+              })
+            }
+          />
+          <Group>
+            <Button variant="light" onClick={handleCreateCustomClause}>
               Add Clause
             </Button>
             <Button
-              variant="contained"
+              variant="light"
               onClick={() => {
-                setCustomTemplate({ title: "", clause: "" });
-                setCustomModal(false);
+                setCustomClause({ title: "", requirements: "" });
+                setModalShown(false);
               }}
             >
               Cancel
             </Button>
-          </Box>
-        </Box>
+          </Group>
+        </Stack>
       </Modal>
-    </Box>
+    </Stack>
   );
 };
 

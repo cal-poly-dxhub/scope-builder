@@ -17,9 +17,9 @@ const Index = () => {
         <Button variant="light" component="a" href="/builder">
           Scope of Work Generator
         </Button>
-        <Button variant="light" component="a" href="/amend">
+        {/* <Button variant="light" component="a" href="/amend">
           Amend Clause
-        </Button>
+        </Button> */}
       </Group>
     </Container>
   );

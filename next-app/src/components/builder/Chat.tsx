@@ -1,66 +1,47 @@
 "use client";
 
-import Message from "@/components/Message";
-import { useAuth } from "@/constants/AuthContext";
-import { _style } from "@/constants/types";
-import { Box, Button, Modal, Text, TextInput } from "@mantine/core";
-import { useEffect, useState } from "react";
+import { _clause } from "@/constants/types";
+import { getClauseTags, getNotesTags } from "@/scripts/extract";
+import { getAssistantChatResponse } from "@/scripts/nextapi";
 import {
-  getBedrockResponse,
-  getCaluseTags,
-  getIncrementalTruths,
-  getSummaryTags,
-  getTruthsTags,
-} from "../../scripts/LLMGeneral";
+  Box,
+  Button,
+  Group,
+  Modal,
+  Stack,
+  Text,
+  TextInput,
+} from "@mantine/core";
+import { useEffect, useState } from "react";
+import Message from "../Message";
 
 const Chat = ({
   loading,
   setLoading,
-  contexts,
-  setContexts,
-  setAccepted,
-  currentClause,
-  setCurrentClause,
-  document,
-  debug = false,
-  style,
+  messages,
+  appendMessage,
+  acceptClause,
+  currentClauseTitle,
 }: {
   loading: boolean;
   setLoading: (loading: boolean) => void;
-  contexts: {
-    title: string;
-    context: { role: string; content: { type: string; text: string }[] }[];
-  }[];
-  setContexts: (
-    contexts: {
-      title: string;
-      context: { role: string; content: { type: string; text: string }[] }[];
-    }[]
+  messages: { role: string; content: { type: string; text: string }[] }[];
+  appendMessage: (
+    clauseTitle: string,
+    message: {
+      role: string;
+      content: { type: string; text: string }[];
+    }
   ) => void;
-  setAccepted: (accepted: boolean) => void;
-  currentClause: {
-    title: string;
-    clause: string;
-    summary: string;
-    truths: string;
-  };
-  setCurrentClause: (currentClause: {
-    title: string;
-    clause: string;
-    summary: string;
-    truths: string;
-  }) => void;
-  document: {
-    title: string;
-    content: string;
-    summary: string;
-    truths: string;
-  }[];
-  debug?: boolean;
-  style?: _style;
+  acceptClause: (clause: _clause) => void;
+  currentClauseTitle: string;
 }) => {
-  const { token } = useAuth();
   const [inputValue, setInputValue] = useState<string>("");
+  const [currentClause, setCurrentClause] = useState<_clause>({
+    title: "",
+    content: "",
+    notes: "",
+  });
   const [clausePopup, setClausePopup] = useState<boolean>(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,184 +57,119 @@ const Chat = ({
       return;
     }
 
-    const ui = inputValue;
+    appendMessage(currentClauseTitle, {
+      role: "user",
+      content: [{ type: "text", text: inputValue }],
+    });
+
     setInputValue("");
-
-    const oldContext = contexts.find(
-      (c) => c.title === currentClause.title
-    ) ?? {
-      title: currentClause.title,
-      context: [],
-    };
-
-    const incrementalTruths = getIncrementalTruths(document);
-    if (oldContext.context.length > 0) {
-      oldContext.context[0].content[0].text += incrementalTruths;
-    }
-
-    const newContext = [
-      ...oldContext.context,
-      { role: "user", content: [{ type: "text", text: ui }] },
-    ];
-    const newContexts = [
-      ...contexts.filter((c) => c.title !== currentClause.title),
-      { title: currentClause.title, context: newContext },
-    ];
-
-    setContexts(newContexts);
-
     setLoading(true);
-    const r = await getBedrockResponse(newContext, token);
-    const finishedClause = getCaluseTags(r);
-    const summary = getSummaryTags(r);
-    const truths = getTruthsTags(r);
 
-    if (finishedClause) {
+    const response = await getAssistantChatResponse(
+      [
+        ...messages,
+        {
+          role: "user",
+          content: [{ type: "text", text: inputValue }],
+        },
+      ],
+      currentClauseTitle
+    );
+
+    const clause = getClauseTags(response);
+    if (clause) {
+      const notes = getNotesTags(response);
       setCurrentClause({
-        title: currentClause.title,
-        clause: finishedClause,
-        summary,
-        truths,
+        title: currentClauseTitle,
+        content: clause,
+        notes,
       });
       setClausePopup(true);
     }
 
-    newContext.push({ role: "assistant", content: r });
-    setContexts(newContexts);
-
+    appendMessage(currentClauseTitle, response);
     setLoading(false);
-  };
-
-  const getMessages = () => {
-    const currentContext = contexts.find(
-      (c) => c.title === currentClause.title
-    )?.context;
-
-    if (!currentContext) {
-      return [];
-    }
-
-    return currentContext.map((message, index) => {
-      if (
-        message.role === "user" &&
-        message.content[0].text.includes(
-          "You are LUCAS, a procurement manager assistant specialized in creating scope of work"
-        )
-      ) {
-        return (
-          <Box
-            key={index}
-            style={{
-              marginBottom: 2,
-              backgroundColor: "#f0f0f0",
-              padding: 1,
-              borderRadius: 1,
-              width: "100%",
-            }}
-          >
-            <Text>Start working on {currentClause.title}</Text>
-          </Box>
-        );
-      }
-
-      return <Message key={index} message={message} />;
-    });
   };
 
   useEffect(() => {
     const chatBox = window.document.querySelector(".message-container");
     chatBox?.scrollTo(0, chatBox.scrollHeight);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contexts, loading]); // auto scroll to bottom
+  }, [messages, loading]); // auto scroll to bottom
 
   return (
-    <Box
-      h="calc(100vh - 100px)"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        ...style,
-      }}
-    >
-      <Box style={{ display: "flex", justifyContent: "center" }}>
-        <Text size="lg" fw="bold">
-          Scope of Work Generator
-        </Text>
-      </Box>
-      <Box
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          flexGrow: 1,
-          marginTop: 2,
-          padding: 2,
-          overflowY: "auto",
-        }}
-      >
-        <Box
-          className="message-container"
-          style={{
-            width: "auto",
-          }}
-        >
-          {getMessages()}
-        </Box>
-        {loading && (
-          <Box style={{ marginTop: 2 }}>
-            <Text variant="body1">Loading...</Text>
-          </Box>
-        )}
-      </Box>
-      <Box
-        style={{
-          display: "flex",
-          alignItems: "center",
-          marginTop: 2,
-          padding: 2,
-        }}
-      >
-        <TextInput
-          style={{ flexGrow: 1, marginRight: 2 }}
-          value={inputValue}
-          onChange={handleInputChange}
-          placeholder="Type your message..."
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              handleSendMessage();
-            }
-          }}
+    <Stack h="calc(100vh - 93px)" pb="82px" style={{ overflowY: "auto" }}>
+      <Text size="lg" fw="bold">
+        Scope of Work Generator
+      </Text>
+      {messages.map((message, index) => (
+        <Message
+          key={index}
+          message={message}
+          currentClauseTitle={currentClauseTitle}
         />
-        <Button variant="contained" onClick={handleSendMessage}>
-          Send
-        </Button>
-        {debug && (
-          <Button
-            variant="contained"
-            onClick={() => {
-              console.log(contexts);
+      ))}
+      {loading && (
+        <Box style={{ marginTop: 2 }}>
+          <Text variant="body1">Loading...</Text>
+        </Box>
+      )}
+      <Box pos="fixed" bottom="15px" left="30vw" right="calc(30vw + 15px)">
+        <Group bg="gray.0" p="xs" style={{ borderRadius: 8 }}>
+          <TextInput
+            value={inputValue}
+            onChange={handleInputChange}
+            placeholder="Type your message..."
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSendMessage();
+              }
             }}
-            style={{ marginLeft: 2 }}
-          >
-            Log Context
+            style={{ flex: 1 }}
+          />
+          <Button variant="outline" onClick={handleSendMessage}>
+            Send
           </Button>
-        )}
+        </Group>
       </Box>
-      <Modal opened={clausePopup} onClose={() => setClausePopup(false)}>
-        <Text size="lg" fw="bold">
-          {currentClause.title}
-        </Text>
-        <Text variant="body1">{currentClause.clause}</Text>
-        <Button
+      {/* <Button
+          variant="contained"
           onClick={() => {
-            setAccepted(true);
-            setClausePopup(false);
+            console.log(messages);
           }}
+          style={{ marginLeft: 2 }}
         >
-          Accept Clause
-        </Button>
-        <Button onClick={() => setClausePopup(false)}>Continue Editing</Button>
+          Log Messages
+        </Button> */}
+      <Modal
+        opened={clausePopup}
+        onClose={() => setClausePopup(false)}
+        title={
+          <Text size="lg" fw="bold">
+            {currentClauseTitle}
+          </Text>
+        }
+      >
+        <Stack>
+          <Text>{currentClause.content}</Text>
+          <Group>
+            <Button
+              variant="outline"
+              onClick={() => {
+                console.log(currentClause);
+                acceptClause(currentClause);
+                setClausePopup(false);
+              }}
+            >
+              Accept Clause
+            </Button>
+            <Button variant="light" onClick={() => setClausePopup(false)}>
+              Continue Editing
+            </Button>
+          </Group>
+        </Stack>
       </Modal>
-    </Box>
+    </Stack>
   );
 };
 

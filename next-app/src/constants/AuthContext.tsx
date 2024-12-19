@@ -58,7 +58,9 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     cognitoUser.authenticateUser(authDetails, {
       onSuccess: (result) => {
         setToken(result.getIdToken().getJwtToken());
+        sessionStorage.setItem("token", result.getIdToken().getJwtToken());
         setEmail(em);
+        sessionStorage.setItem("email", em);
         onSuccess(result);
       },
       onFailure: (err) => {
@@ -71,8 +73,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
   const handleLogout = () => {
     setEmail("");
     setToken("");
-    sessionStorage.removeItem("email");
-    sessionStorage.removeItem("token");
+    sessionStorage.clear();
 
     const userData = {
       Username: email,
@@ -84,28 +85,22 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    const email = sessionStorage.getItem("email");
-    const token = sessionStorage.getItem("token");
-
-    if (email) {
-      setEmail(email);
+    const e = sessionStorage.getItem("email");
+    if (e) {
+      setEmail(e);
     }
 
-    if (token) {
-      setToken(token);
+    const t = sessionStorage.getItem("token");
+    if (t) {
+      setToken(t);
     }
   }, []);
-
-  useEffect(() => {
-    sessionStorage.setItem("email", email);
-    sessionStorage.setItem("token", token);
-  }, [email, token]);
 
   return (
     <AuthContext.Provider
       value={{
-        email,
-        token,
+        email: email,
+        token: token,
         handleLogin,
         handleLogout,
       }}

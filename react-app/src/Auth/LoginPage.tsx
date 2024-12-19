@@ -10,7 +10,7 @@ const LoginPage = () => {
   const { handleLogin } = useAuth();
 
   const onSuccess = (result: any) => {
-    window.location.href = "/";
+    // window.location.href = "/";
   };
 
   const onFailure = (err: any) => {

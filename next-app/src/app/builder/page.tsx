@@ -11,6 +11,7 @@ import {
   Textarea,
   TextInput,
 } from "@mantine/core";
+import { jwtDecode } from "jwt-decode";
 import { useState } from "react";
 
 const Begin = () => {
@@ -20,6 +21,17 @@ const Begin = () => {
   const [category, setCategory] = useState("");
 
   const handleSubmit = () => {
+    const token = sessionStorage.getItem("token");
+    if (
+      token === null ||
+      token === undefined ||
+      (jwtDecode<{ exp: number }>(token).exp ?? 0) < Date.now() / 1000
+    ) {
+      alert("Session expired. Please log in.");
+      window.location.href = "/login";
+      return;
+    }
+
     const formData = {
       userInstitution,
       supplier,
@@ -28,6 +40,12 @@ const Begin = () => {
     };
 
     sessionStorage.setItem("scopeData", JSON.stringify(formData));
+    sessionStorage.removeItem("context");
+    sessionStorage.removeItem("document");
+    const date = new Date().getTime();
+    const email = sessionStorage.getItem("email");
+    const session = `${email}-${date}`;
+    sessionStorage.setItem("session", session);
     window.location.href = "/builder/clauses";
   };
 

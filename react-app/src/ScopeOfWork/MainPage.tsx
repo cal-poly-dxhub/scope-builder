@@ -19,7 +19,7 @@ const ScopeOfWork = templates.Clauses.find(
   (clause) => clause.category === "All"
 )?.clauses.find((clause) => clause.title === "Scope of Work");
 
-const DEBUG = false;
+const DEBUG = true;
 
 const MainPage = () => {
   const { token } = useAuth();
@@ -58,6 +58,8 @@ const MainPage = () => {
   const supplier = sowgenContext?.category ?? searchParams.get("supplier");
   const documentPurpose =
     sowgenContext?.category ?? searchParams.get("documentPurpose");
+  const st = sowgenContext?.category ?? searchParams.get("startTime") ?? "0";
+  const startTime = parseInt(st);
 
   // for sowchat
   const [loading, setLoading] = useState<boolean>(false);
@@ -206,7 +208,7 @@ const MainPage = () => {
   }, []);
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column" }}>
+    <Box sx={{ display: "flex", flexDirection: "column", height: "94vh" }}>
       <Box
         sx={{
           display: "flex",
@@ -225,6 +227,7 @@ const MainPage = () => {
           style={{ width: "25vw" }}
         />
         <Chat
+          startTime={startTime}
           loading={loading}
           setLoading={setLoading}
           contexts={contexts}
@@ -261,7 +264,7 @@ const MainPage = () => {
           }}
           setCurrentClause={setCurrentClause}
           debug={DEBUG}
-          style={{ width: "25vw" }}
+          style={{ width: "25vw", height: "94vh" }}
         />
       </Box>
     </Box>
