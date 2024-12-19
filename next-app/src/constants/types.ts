@@ -26,8 +26,6 @@ type _clauseTemplate = {
   requirements: string;
 };
 
-type _style = React.CSSProperties | undefined;
-
 type _message = {
   role: string;
   content: { type: string; text: string }[];
@@ -45,5 +43,4 @@ export type {
   _document,
   _member,
   _message,
-  _style,
 };

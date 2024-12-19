@@ -5,7 +5,7 @@ import {
   _message,
 } from "@/constants/types";
 
-const fetchEndpoint = (endpoint: string, body: any) => {
+const fetchEndpoint = (endpoint: string, body: unknown) => {
   const token = sessionStorage.getItem("token");
   return fetch(endpoint, {
     method: "POST",

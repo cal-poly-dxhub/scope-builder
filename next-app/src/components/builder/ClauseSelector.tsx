@@ -26,11 +26,7 @@ const ClauseSelector = ({
     title: "",
     requirements: "",
   });
-  const [startedClauseTitles, setStartedClauseTitles] = useState<string[]>(
-    JSON.parse(sessionStorage["document"] ?? "[]")?.clauses?.map(
-      (clause: _clause) => clause.title
-    ) ?? []
-  );
+  const [startedClauseTitles, setStartedClauseTitles] = useState<string[]>([]);
 
   const clauseTemplates = templates.filter(
     (clause) => clause.category === category || clause.category === "All"
@@ -43,6 +39,15 @@ const ClauseSelector = ({
     setCustomClause({ title: "", requirements: "" });
     setModalShown(false);
   };
+
+  // sessionstorage
+  useEffect(() => {
+    setStartedClauseTitles(
+      JSON.parse(sessionStorage["document"] ?? "[]")?.clauses?.map(
+        (clause: _clause) => clause.title
+      ) ?? []
+    );
+  }, []);
 
   // set started clause titles
   useEffect(() => {

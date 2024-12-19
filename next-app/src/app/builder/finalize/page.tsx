@@ -20,13 +20,11 @@ import {
 import { useEffect, useState } from "react";
 
 const Finalize = () => {
-  const oldSessionDocument = JSON.parse(sessionStorage["document"]);
-  const [finalizedClauses, setFinalizedClauses] = useState<_clause[]>(
-    oldSessionDocument?.clauses ?? []
-  );
+  const [finalizedClauses, setFinalizedClauses] = useState<_clause[]>([]);
 
-  const [currentDocument, setCurrentDocument] =
-    useState<_document>(oldSessionDocument);
+  const [currentDocument, setCurrentDocument] = useState<_document>(
+    {} as _document
+  );
 
   const [modalShown, setModalShown] = useState<boolean>(false);
   const [incomingEditedClauses, setIncomingEditedClauses] = useState<_clause[]>(
@@ -86,16 +84,23 @@ const Finalize = () => {
   };
 
   // get definitions and engagement clauses
+  // sessionstorage
   useEffect(() => {
+    const oldSessionDocument = JSON.parse(sessionStorage["document"]);
+    const oldSessionClauses = oldSessionDocument?.clauses ?? [];
+    setFinalizedClauses(oldSessionClauses);
+    setCurrentDocument(oldSessionDocument);
+
     const getOtherClauses = async () => {
       const [definitionsClause, engagementClause] = await Promise.all([
-        getDefinitionsClause(currentDocument),
-        getEngagementClause(currentDocument),
+        getDefinitionsClause(oldSessionDocument),
+        getEngagementClause(oldSessionDocument),
       ]);
 
-      const filteredClauses = currentDocument.clauses.filter(
-        (c) =>
-          c.title !== "Definitions" && c.title !== "Engagement of Contractor"
+      const filteredClauses = oldSessionDocument.clauses.filter(
+        (c: _clause) =>
+          c === undefined ||
+          (c.title !== "Definitions" && c.title !== "Engagement of Contractor")
       );
 
       setFinalizedClauses([
@@ -106,7 +111,7 @@ const Finalize = () => {
       sessionStorage.setItem(
         "document",
         JSON.stringify({
-          ...currentDocument,
+          ...oldSessionDocument,
           clauses: [
             definitionsClause,
             engagementClause,
@@ -117,19 +122,19 @@ const Finalize = () => {
     };
 
     if (
-      finalizedClauses[0].title !== "Definitions" ||
-      finalizedClauses[1].title !== "Engagement of Contractor"
+      oldSessionClauses[0].title !== "Definitions" ||
+      oldSessionClauses[1].title !== "Engagement of Contractor"
     ) {
       const newFinalizedClauses = [
         { title: "Definitions", content: "loading...", notes: "" },
         { title: "Engagement of Contractor", content: "loading...", notes: "" },
-        ...finalizedClauses,
+        ...oldSessionClauses,
       ];
       setFinalizedClauses(newFinalizedClauses);
       getOtherClauses();
     } else if (
-      finalizedClauses[0].content === "loading..." ||
-      finalizedClauses[1].content === "loading..."
+      oldSessionClauses[0].content === "loading..." ||
+      oldSessionClauses[1].content === "loading..."
     ) {
       getOtherClauses();
     }

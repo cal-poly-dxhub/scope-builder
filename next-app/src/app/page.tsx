@@ -14,7 +14,7 @@ const Index = () => {
         DxHub Scope Builder
       </Text>
       <Group mt="md">
-        <Button variant="light" component="a" href="/builder">
+        <Button variant="light" component="a" href="/builder/">
           Scope of Work Generator
         </Button>
         {/* <Button variant="light" component="a" href="/amend">

@@ -1,18 +1,16 @@
 "use client";
 
-import { _clause, _style } from "@/constants/types";
+import { _clause } from "@/constants/types";
 import { Button, Group, Paper, Stack, Text } from "@mantine/core";
 
 const DocumentPanel = ({
   finishedClauses,
   setFinishedClauses,
   handleChangeClause,
-  style,
 }: {
   finishedClauses: _clause[];
   setFinishedClauses: (clauses: _clause[]) => void;
   handleChangeClause: (title: string) => void;
-  style?: _style;
 }) => {
   const handleExport = async () => {
     const oldDocument = JSON.parse(sessionStorage["document"]);

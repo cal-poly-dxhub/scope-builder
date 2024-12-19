@@ -20,7 +20,7 @@ export const Header = () => {
               <Button
                 variant="light"
                 component="a"
-                href="/builder"
+                href="/builder/"
                 style={{ textDecoration: "none" }}
               >
                 SOW Generator

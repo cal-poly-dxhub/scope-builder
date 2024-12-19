@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "deploy": "yarn build && aws s3 sync out/ s3://dxhub-procurement-public --delete --exclude \"*.DS_Store\" --cache-control public,max-age=604800"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.602.0",

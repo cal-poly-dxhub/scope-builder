@@ -16,31 +16,43 @@ import { useEffect, useRef, useState } from "react";
 
 const Clauses = () => {
   const [loading, setLoading] = useState<boolean>(false);
-  const [finishedClauses, setFinishedClauses] = useState<_clause[]>(
-    JSON.parse(sessionStorage["document"] ?? "[]")?.clauses ?? []
-  );
-
-  // console.log("sessionStorage:", sessionStorage);
+  const [finishedClauses, setFinishedClauses] = useState<_clause[]>([]);
 
   const contexts = useRef<
     {
       clause: _clause;
       messages: _message[];
     }[]
-  >(JSON.parse(sessionStorage["context"] ?? "[]") || []);
+  >([]);
   const [currentMessages, setCurrentMessages] = useState<_message[]>(
     contexts.current[0]?.messages ?? []
   );
   const [currentClauseTitle, setCurrentClauseTitle] = useState<string>("");
 
-  const category = JSON.parse(sessionStorage["scopeData"])?.category;
-  const userInstitution = JSON.parse(
-    sessionStorage["scopeData"]
-  )?.userInstitution;
-  const supplier = JSON.parse(sessionStorage["scopeData"])?.supplier;
-  const documentPurpose = JSON.parse(
-    sessionStorage["scopeData"]
-  )?.documentPurpose;
+  const [category, setCategory] = useState<string>("");
+  const [userInstitution, setUserInstitution] = useState<string>("");
+  const [supplier, setSupplier] = useState<string>("");
+  const [documentPurpose, setDocumentPurpose] = useState<string>("");
+
+  // sessionstorage
+  useEffect(() => {
+    const fcs = JSON.parse(sessionStorage["document"] ?? "[]")?.clauses ?? [];
+    console.log("fcs:", fcs);
+    setFinishedClauses(fcs);
+    contexts.current = JSON.parse(sessionStorage["context"] ?? "[]") || [];
+
+    const c = JSON.parse(sessionStorage["scopeData"])?.category;
+    setCategory(c);
+
+    const uin = JSON.parse(sessionStorage["scopeData"])?.userInstitution;
+    setUserInstitution(uin);
+
+    const s = JSON.parse(sessionStorage["scopeData"])?.supplier;
+    setSupplier(s);
+
+    const dp = JSON.parse(sessionStorage["scopeData"])?.documentPurpose;
+    setDocumentPurpose(dp);
+  }, []);
 
   const appendMessage = (clauseTitle: string, message: _message) => {
     const contextIndex = contexts.current.findIndex(
