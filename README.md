@@ -19,25 +19,25 @@ Thanks for your interest in our solution. We welcome any replication or extensio
 
 **All prototype code and assets should be considered:**
 
-- As-is and without warranties  
-- Not suitable for production environments  
+- As-is and without warranties
+- Not suitable for production environments
 - Simplified for rapid prototyping (e.g., relaxed authentication, limited security hardening)
 
 **All work produced is open source. More information can be found in the GitHub repo.**
 
 ## Authors
 
-- Gus Flusser – gflusser@calpoly.edu
+- Gus Flusser – gflusser@amazon.com
 
 ## Table of Contents
 
-- [Collaboration](#collaboration)  
-- [Disclaimers](#disclaimers)  
-- [Authors](#authors)  
-- [Overview](#overview)  
-- [High Level Description of Workflow](#high-level-description-of-workflow)  
-- [Recommended Customer Workflow](#recommended-customer-workflow)  
-- [Known Bugs/Concerns](#known-bugsconcerns)  
+- [Collaboration](#collaboration)
+- [Disclaimers](#disclaimers)
+- [Authors](#authors)
+- [Overview](#overview)
+- [High Level Description of Workflow](#high-level-description-of-workflow)
+- [Recommended Customer Workflow](#recommended-customer-workflow)
+- [Known Bugs/Concerns](#known-bugsconcerns)
 - [Support](#support)
 
 ## Overview
@@ -46,30 +46,29 @@ Scope Builder is a generative AI-powered tool designed to streamline procurement
 
 ## High Level Description of Workflow
 
-- **User Interaction**: Users are guided through a conversational AI interface to create tailored scopes of work.  
-- **Generation**: Claude 3.5 Sonnet generates section-by-section drafts using user inputs, best practices, and prior examples.  
-- **Editing**: Context-aware editing tools allow intelligent, coherent search-and-replace modifications.  
+- **User Interaction**: Users are guided through a conversational AI interface to create tailored scopes of work.
+- **Generation**: Claude 3.5 Sonnet generates section-by-section drafts using user inputs, best practices, and prior examples.
+- **Editing**: Context-aware editing tools allow intelligent, coherent search-and-replace modifications.
 - **Review**: Users perform a final review and make necessary edits before publishing the generated document.
 
 ## Recommended Customer Workflow
 
-1. **Log in and initiate a new scope creation session**  
-2. **Answer guided prompts** to define procurement requirements  
-3. **Generate full draft** of the scope of work  
-4. **Make context-aware edits** using smart edit tools  
+1. **Log in and initiate a new scope creation session**
+2. **Answer guided prompts** to define procurement requirements
+3. **Generate full draft** of the scope of work
+4. **Make context-aware edits** using smart edit tools
 5. **Download and finalize** the document for inclusion in an RFP or contract
 
 ## Known Bugs/Concerns
 
-- Generated content may require human review for legal/compliance accuracy  
-- Model outputs may vary depending on input phrasing  
+- Generated content may require human review for legal/compliance accuracy
+- Model outputs may vary depending on input phrasing
 - Context-aware editing is under active development and may produce unexpected replacements
 
 ## Support
 
 For questions or issues, contact:
 
-- Gus Flusser – Software Developer Intern – gflusser@calpoly.edu  
-- Nick Osterbur – Digital Innovation Lead – nosterb@amazon.com  
+- Gus Flusser – Software Developer Intern – gflusser@amazon.com
+- Nick Osterbur – Digital Innovation Lead – nosterb@amazon.com
 - Darren Kraker – Sr. Solutions Architect – dkraker@amazon.com
-
