@@ -163,6 +163,7 @@ cython_debug/
 
 
 *.js
+!cloudfront-rewrite.js
 !jest.config.js
 *.d.ts
 node_modules

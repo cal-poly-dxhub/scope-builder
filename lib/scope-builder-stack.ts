@@ -370,12 +370,24 @@ export class ScopeBuilderStack extends cdk.Stack {
       "OAC"
     );
 
+    const rewriteFunction = new cloudfront.Function(this, "RewriteFunction", {
+      code: cloudfront.FunctionCode.fromFile({
+        filePath: "lib/cloudfront-rewrite.js",
+      }),
+    });
+
     const distribution = new cloudfront.Distribution(this, "Distribution", {
       defaultBehavior: {
         origin: origins.S3BucketOrigin.withOriginAccessControl(websiteBucket, {
           originAccessControl,
         }),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        functionAssociations: [
+          {
+            function: rewriteFunction,
+            eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+          },
+        ],
       },
       defaultRootObject: "index.html",
     });
@@ -418,13 +430,7 @@ export class ScopeBuilderStack extends cdk.Stack {
             },
           },
           pre_build: {
-            commands: [
-              "pwd",
-              "ls -la",
-              "ls -la apps/ || echo 'apps directory not found'",
-              "cd apps/frontend",
-              "yarn install",
-            ],
+            commands: ["cd apps/frontend", "yarn install"],
           },
           build: {
             commands: ["yarn build"],
