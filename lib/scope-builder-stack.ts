@@ -413,6 +413,12 @@ export class ScopeBuilderStack extends cdk.Stack {
         NEXT_PUBLIC_AWS_USER_POOL_WEB_CLIENT_ID: {
           value: userPoolClient.userPoolClientId,
         },
+        NEXT_PUBLIC_NEXT_API_ENDPOINT: {
+          value: api.url,
+        },
+        NEXT_PUBLIC_API_KEY: {
+          value: secret.secretValueFromJson("ApiKey").unsafeUnwrap(),
+        },
       },
       artifacts: codebuild.Artifacts.s3({
         bucket: websiteBucket,
