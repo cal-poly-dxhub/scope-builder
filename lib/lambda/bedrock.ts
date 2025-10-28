@@ -10,14 +10,6 @@ export const getBedrockResponse = async (
   const model_id = "us.anthropic.claude-sonnet-4-5-20250929-v1:0";
   const client = new BedrockRuntimeClient({
     region: "us-west-2",
-    credentials: {
-      // accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-      // secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
-      // lol idk why env doesnt work still
-      // TODO: add keys
-      accessKeyId: "",
-      secretAccessKey: "",
-    },
   });
 
   console.log("getting bedrock response");

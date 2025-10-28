@@ -83,15 +83,17 @@ export class ScopeBuilderStack extends cdk.Stack {
       {
         runtime: lambda.Runtime.NODEJS_18_X,
         handler: "chat/assistant.handler",
-        code: lambda.Code.fromAsset("dist/lib/lambda/"),
-        environment: {
-          ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID!,
-          SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY!,
-        },
-        timeout: cdk.Duration.seconds(60),
+        code: lambda.Code.fromAsset("dist/lib/lambda"),
+        timeout: cdk.Duration.seconds(120),
       }
     );
     secret.grantRead(assistantChatLambda);
+    assistantChatLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["bedrock:InvokeModel"],
+        resources: ["*"],
+      })
+    );
 
     const assistantChatLambdaIntegration = new apigateway.LambdaIntegration(
       assistantChatLambda,
@@ -134,14 +136,16 @@ export class ScopeBuilderStack extends cdk.Stack {
     const clausePromptLambda = new lambda.Function(this, "ClausePromptLambda", {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: "chat/clausePrompt.handler",
-      code: lambda.Code.fromAsset("dist/lib/lambda/"),
-      environment: {
-        ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID!,
-        SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY!,
-      },
-      timeout: cdk.Duration.seconds(60),
+      code: lambda.Code.fromAsset("dist/lib/lambda"),
+      timeout: cdk.Duration.seconds(120),
     });
     secret.grantRead(clausePromptLambda);
+    clausePromptLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["bedrock:InvokeModel"],
+        resources: ["*"],
+      })
+    );
 
     const clausePromptLambdaIntegration = new apigateway.LambdaIntegration(
       clausePromptLambda,
@@ -187,15 +191,17 @@ export class ScopeBuilderStack extends cdk.Stack {
       {
         runtime: lambda.Runtime.NODEJS_18_X,
         handler: "getClause/definitions.handler",
-        code: lambda.Code.fromAsset("dist/lib/lambda/"),
-        environment: {
-          ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID!,
-          SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY!,
-        },
-        timeout: cdk.Duration.seconds(60),
+        code: lambda.Code.fromAsset("dist/lib/lambda"),
+        timeout: cdk.Duration.seconds(120),
       }
     );
     secret.grantRead(definitionsClauseLambda);
+    definitionsClauseLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["bedrock:InvokeModel"],
+        resources: ["*"],
+      })
+    );
 
     const definitionsClauseLambdaIntegration = new apigateway.LambdaIntegration(
       definitionsClauseLambda,
@@ -243,14 +249,16 @@ export class ScopeBuilderStack extends cdk.Stack {
     const editedClauseLambda = new lambda.Function(this, "EditedClauseLambda", {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: "getClause/edited.handler",
-      code: lambda.Code.fromAsset("dist/lib/lambda/"),
-      environment: {
-        ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID!,
-        SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY!,
-      },
-      timeout: cdk.Duration.seconds(60),
+      code: lambda.Code.fromAsset("dist/lib/lambda"),
+      timeout: cdk.Duration.seconds(120),
     });
     secret.grantRead(editedClauseLambda);
+    editedClauseLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["bedrock:InvokeModel"],
+        resources: ["*"],
+      })
+    );
 
     const editedClauseLambdaIntegration = new apigateway.LambdaIntegration(
       editedClauseLambda,
@@ -296,15 +304,17 @@ export class ScopeBuilderStack extends cdk.Stack {
       {
         runtime: lambda.Runtime.NODEJS_18_X,
         handler: "getClause/engagement.handler",
-        code: lambda.Code.fromAsset("dist/lib/lambda/"),
-        environment: {
-          ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID!,
-          SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY!,
-        },
-        timeout: cdk.Duration.seconds(60),
+        code: lambda.Code.fromAsset("dist/lib/lambda"),
+        timeout: cdk.Duration.seconds(120),
       }
     );
     secret.grantRead(engagementClauseLambda);
+    engagementClauseLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["bedrock:InvokeModel"],
+        resources: ["*"],
+      })
+    );
 
     const engagementClauseLambdaIntegration = new apigateway.LambdaIntegration(
       engagementClauseLambda,
@@ -417,7 +427,7 @@ export class ScopeBuilderStack extends cdk.Stack {
           value: api.url,
         },
         NEXT_PUBLIC_API_KEY: {
-          value: secret.secretValueFromJson("ApiKey").unsafeUnwrap(),
+          value: secret.secretValue.unsafeUnwrap(),
         },
       },
       artifacts: codebuild.Artifacts.s3({
@@ -436,10 +446,20 @@ export class ScopeBuilderStack extends cdk.Stack {
             },
           },
           pre_build: {
-            commands: ["cd apps/frontend", "yarn install"],
+            commands: [
+              "cd apps/frontend",
+              "echo API Endpoint: $NEXT_PUBLIC_NEXT_API_ENDPOINT",
+              "echo API Key: $NEXT_PUBLIC_API_KEY",
+              "yarn install",
+            ],
           },
           build: {
             commands: ["yarn build"],
+          },
+          post_build: {
+            commands: [
+              `aws cloudfront create-invalidation --distribution-id ${distribution.distributionId} --paths "/*"`,
+            ],
           },
         },
         artifacts: {
@@ -478,6 +498,7 @@ export class ScopeBuilderStack extends cdk.Stack {
           physicalResourceId: custom_resources.PhysicalResourceId.of(
             `trigger-${Date.now()}`
           ),
+          outputPaths: ["build.id"],
         },
         onUpdate: {
           service: "CodeBuild",
@@ -488,6 +509,7 @@ export class ScopeBuilderStack extends cdk.Stack {
           physicalResourceId: custom_resources.PhysicalResourceId.of(
             `trigger-${Date.now()}`
           ),
+          outputPaths: ["build.id"],
         },
         policy: custom_resources.AwsCustomResourcePolicy.fromStatements([
           new iam.PolicyStatement({
@@ -503,6 +525,10 @@ export class ScopeBuilderStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, "DistributionDomainName", {
       value: distribution.distributionDomainName,
+    });
+
+    new cdk.CfnOutput(this, "ApiEndpoint", {
+      value: api.url,
     });
 
     new cdk.CfnOutput(this, "WebsiteBucketName", {
