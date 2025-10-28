@@ -2,7 +2,7 @@
 
 import ModalClause from "@/components/finalize/ModalClause";
 import { _clause, _document } from "@/constants/types";
-import { downloadDocument } from "@/scripts/docx";
+import { downloadDocument } from "@/scripts/Docx";
 import {
   getDefinitionsClause,
   getEditedClause,
