@@ -7,7 +7,7 @@ import { ColorSchemeScript, MantineProvider, Stack } from "@mantine/core";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Scope Builder",
+  title: "ScopeBuilder",
   description: "AI powered scope of work document builder",
 };
 
