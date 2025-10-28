@@ -27,7 +27,7 @@ Thanks for your interest in our solution. We welcome any replication or extensio
 
 ## Authors
 
-- Gus Flusser – gflusser@amazon.com
+- Gus Flusser – gflusser@calpoly.edu
 
 ## Table of Contents
 
@@ -69,6 +69,6 @@ Scope Builder is a generative AI-powered tool designed to streamline procurement
 
 For questions or issues, contact:
 
-- Gus Flusser – Software Developer Intern – gflusser@amazon.com
+- Gus Flusser – Software Developer Intern – gflusser@calpoly.edu
 - Nick Osterbur – Digital Innovation Lead – nosterb@amazon.com
 - Darren Kraker – Sr. Solutions Architect – dkraker@amazon.com
